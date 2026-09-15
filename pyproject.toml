@@ -1,0 +1,20 @@
+[project]
+name = "medgemma-grounding"
+version = "0.1.0"
+description = "Scaffold for mechanistic interpretability research on MedGemma 1.5 visual grounding."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
