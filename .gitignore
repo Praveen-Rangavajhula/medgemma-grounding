@@ -29,3 +29,14 @@ dist/
 # IDE files
 .idea/
 .vscode/
+
+# Data and large artifacts
+data/
+results/
+outputs/
+checkpoints/
+activations/
+models/
+
+# macOS
+.DS_Store
