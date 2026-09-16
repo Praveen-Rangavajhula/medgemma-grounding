@@ -5,6 +5,7 @@ description = "Scaffold for mechanistic interpretability research on MedGemma 1.
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
+    "accelerate>=1.0.0",
     "jupyterlab>=4.6.3",
     "pillow>=10.0.0",
     "python-dotenv>=1.0.1",

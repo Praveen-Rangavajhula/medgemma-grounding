@@ -2,6 +2,7 @@
 #
 # pyproject.toml and uv.lock are the source of truth for this project. Keep
 # this file in sync when changing the project's runtime dependencies.
+accelerate>=1.0.0
 jupyterlab>=4.6.3
 pillow>=10.0.0
 python-dotenv>=1.0.1

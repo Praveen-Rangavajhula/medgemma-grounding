@@ -52,7 +52,7 @@ def _load_dependencies() -> tuple[Any, Any, Any]:
 
     try:
         import torch
-        from transformers import AutoModelForMultimodalLM, AutoProcessor
+        from transformers import AutoModelForImageTextToText, AutoProcessor
     except ImportError as error:
         raise OptionalDependencyError(
             "MedGemma inference needs PyTorch and Transformers. "
@@ -60,7 +60,7 @@ def _load_dependencies() -> tuple[Any, Any, Any]:
             "load_model()."
         ) from error
 
-    return torch, AutoModelForMultimodalLM, AutoProcessor
+    return torch, AutoModelForImageTextToText, AutoProcessor
 
 
 def choose_device(torch: Any) -> str:
