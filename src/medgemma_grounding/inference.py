@@ -43,6 +43,7 @@ class ModelBundle:
 
     model: Any
     processor: Any
+    torch: Any
     device: str
     model_id: str
 
@@ -59,6 +60,10 @@ def _load_dependencies() -> tuple[Any, Any, Any]:
             "Install the project's inference dependencies before calling "
             "load_model()."
         ) from error
+
+    print("Using torch version:", torch.__version__)
+    print("Loading model class:", AutoModelForImageTextToText.__name__)
+    print("Loading processor class:", AutoProcessor.__name__)
 
     return torch, AutoModelForImageTextToText, AutoProcessor
 
@@ -96,18 +101,22 @@ def load_model(
 
     torch, model_class, processor_class = _load_dependencies()
     selected_device = device or choose_device(torch)
+    print("Using device:", selected_device)
     if selected_device not in {"cuda", "mps", "cpu"}:
         raise ValueError("device must be one of: 'cuda', 'mps', or 'cpu'")
 
     # Lower precision reduces memory use on accelerators.  CPU inference stays
     # float32 because it is the most broadly compatible starting point.
-    dtype = torch.float32 if selected_device == "cpu" else torch.float16
+    dtype = torch.float32 if selected_device == "cpu" else torch.bfloat16
     access_token = token or os.environ.get("HF_TOKEN")
+    if not access_token:
+        raise RuntimeError("Set HF_TOKEN in .env before loading MedGemma.")
 
+    print(f"Loading {model_id} on {selected_device} using {dtype}…")
     processor = processor_class.from_pretrained(model_id, token=access_token)
     model = model_class.from_pretrained(
         model_id,
-        torch_dtype=dtype,
+        dtype=dtype,
         token=access_token,
     )
     model.to(selected_device)
@@ -116,6 +125,7 @@ def load_model(
     return ModelBundle(
         model=model,
         processor=processor,
+        torch=torch,
         device=selected_device,
         model_id=model_id,
     )
@@ -131,6 +141,7 @@ def load_image(image_path: str | Path) -> Any:
             "Image loading needs Pillow. Install the project's inference "
             "dependencies before calling load_image()."
         ) from error
+    print("Loading image:", image_path)
 
     with Image.open(image_path) as source:
         return source.convert("RGB")
@@ -163,21 +174,31 @@ def generate(
         tokenize=True,
         return_dict=True,
         return_tensors="pt",
-    ).to(bundle.device)
+    ).to(bundle.device, dtype=bundle.model.dtype)
+    input_length = inputs["input_ids"].shape[-1]
 
-    generated_ids = bundle.model.generate(
-        **inputs,
-        max_new_tokens=max_new_tokens,
-        do_sample=False,  # Deterministic outputs make first experiments easier.
-    )
-    # ``generate`` includes the input tokens.  Remove them before decoding so
-    # callers receive only MedGemma's answer.
-    answer_ids = generated_ids[:, inputs.input_ids.shape[1] :]
-    return bundle.processor.batch_decode(
+    print("Generating response…")
+    with bundle.torch.inference_mode():
+        generation = bundle.model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            do_sample=False,
+        )
+
+    # ``generate`` includes the prompt tokens. Decode only newly generated text.
+    answer_ids = generation[0][input_length:]
+    print("Generated token count:", answer_ids.shape[0])
+    answer = bundle.processor.decode(
         answer_ids,
         skip_special_tokens=True,
         clean_up_tokenization_spaces=False,
-    )[0].strip()
+    ).strip()
+    if not answer:
+        raise RuntimeError(
+            "MedGemma generated only special or padding tokens. "
+            "Check the selected device and tensor dtype."
+        )
+    return answer
 
 
 def main() -> None:
@@ -202,6 +223,7 @@ def main() -> None:
         arguments.prompt,
         max_new_tokens=arguments.max_new_tokens,
     )
+    print("MedGemma's answer:")
     print(answer)
 
 
