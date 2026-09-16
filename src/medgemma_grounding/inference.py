@@ -15,6 +15,7 @@ the ``HF_TOKEN`` environment variable to a read token.  For example::
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,7 @@ load_dotenv()
 # Keep the model name in one place: later experiments can accept a different
 # model id without duplicating the loading logic.
 DEFAULT_MODEL_ID = "google/medgemma-1.5-4b-it"
+LOGGER = logging.getLogger(__name__)
 
 
 class OptionalDependencyError(RuntimeError):
@@ -61,9 +63,9 @@ def _load_dependencies() -> tuple[Any, Any, Any]:
             "load_model()."
         ) from error
 
-    print("Using torch version:", torch.__version__)
-    print("Loading model class:", AutoModelForImageTextToText.__name__)
-    print("Loading processor class:", AutoProcessor.__name__)
+    LOGGER.info("Using PyTorch %s", torch.__version__)
+    LOGGER.debug("Model class: %s", AutoModelForImageTextToText.__name__)
+    LOGGER.debug("Processor class: %s", AutoProcessor.__name__)
 
     return torch, AutoModelForImageTextToText, AutoProcessor
 
@@ -101,7 +103,7 @@ def load_model(
 
     torch, model_class, processor_class = _load_dependencies()
     selected_device = device or choose_device(torch)
-    print("Using device:", selected_device)
+    LOGGER.info("Using device: %s", selected_device)
     if selected_device not in {"cuda", "mps", "cpu"}:
         raise ValueError("device must be one of: 'cuda', 'mps', or 'cpu'")
 
@@ -112,7 +114,7 @@ def load_model(
     if not access_token:
         raise RuntimeError("Set HF_TOKEN in .env before loading MedGemma.")
 
-    print(f"Loading {model_id} on {selected_device} using {dtype}…")
+    LOGGER.info("Loading %s on %s using %s", model_id, selected_device, dtype)
     processor = processor_class.from_pretrained(model_id, token=access_token)
     model = model_class.from_pretrained(
         model_id,
@@ -141,7 +143,7 @@ def load_image(image_path: str | Path) -> Any:
             "Image loading needs Pillow. Install the project's inference "
             "dependencies before calling load_image()."
         ) from error
-    print("Loading image:", image_path)
+    LOGGER.debug("Loading image: %s", image_path)
 
     with Image.open(image_path) as source:
         return source.convert("RGB")
@@ -177,7 +179,7 @@ def generate(
     ).to(bundle.device, dtype=bundle.model.dtype)
     input_length = inputs["input_ids"].shape[-1]
 
-    print("Generating response…")
+    LOGGER.info("Generating response")
     with bundle.torch.inference_mode():
         generation = bundle.model.generate(
             **inputs,
@@ -187,7 +189,7 @@ def generate(
 
     # ``generate`` includes the prompt tokens. Decode only newly generated text.
     answer_ids = generation[0][input_length:]
-    print("Generated token count:", answer_ids.shape[0])
+    LOGGER.info("Generated %d tokens", answer_ids.shape[0])
     answer = bundle.processor.decode(
         answer_ids,
         skip_special_tokens=True,
@@ -213,7 +215,16 @@ def main() -> None:
     )
     parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
     parser.add_argument("--max-new-tokens", type=int, default=128)
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show debug logging, including model classes and the image path",
+    )
     arguments = parser.parse_args()
+    logging.basicConfig(
+        level=logging.DEBUG if arguments.verbose else logging.INFO,
+        format="%(levelname)s %(name)s: %(message)s",
+    )
 
     bundle = load_model(arguments.model_id)
     image = load_image(arguments.image)
@@ -223,7 +234,6 @@ def main() -> None:
         arguments.prompt,
         max_new_tokens=arguments.max_new_tokens,
     )
-    print("MedGemma's answer:")
     print(answer)
 
 
