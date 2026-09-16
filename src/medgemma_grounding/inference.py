@@ -27,7 +27,7 @@ load_dotenv()
 # Keep the model name in one place: later experiments can accept a different
 # model id without duplicating the loading logic.
 DEFAULT_MODEL_ID = "google/medgemma-1.5-4b-it"
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("medgemma_grounding.inference")
 
 
 class OptionalDependencyError(RuntimeError):
@@ -222,9 +222,12 @@ def main() -> None:
     )
     arguments = parser.parse_args()
     logging.basicConfig(
-        level=logging.DEBUG if arguments.verbose else logging.INFO,
+        level=logging.WARNING,
         format="%(levelname)s %(name)s: %(message)s",
     )
+    LOGGER.setLevel(logging.DEBUG if arguments.verbose else logging.INFO)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
 
     bundle = load_model(arguments.model_id)
     image = load_image(arguments.image)
