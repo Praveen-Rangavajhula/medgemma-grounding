@@ -1,0 +1,8 @@
+# Runtime dependencies for pip users.
+#
+# pyproject.toml and uv.lock are the source of truth for this project. Keep
+# this file in sync when changing the project's runtime dependencies.
+pillow>=10.0.0
+python-dotenv>=1.0.1
+torch>=2.6.0
+transformers>=5.0.0

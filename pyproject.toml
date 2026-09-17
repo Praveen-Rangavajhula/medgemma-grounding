@@ -4,7 +4,12 @@ version = "0.1.0"
 description = "Scaffold for mechanistic interpretability research on MedGemma 1.5 visual grounding."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
-dependencies = []
+dependencies = [
+    "pillow>=10.0.0",
+    "python-dotenv>=1.0.1",
+    "torch>=2.6.0",
+    "transformers>=5.0.0",
+]
 
 [dependency-groups]
 dev = [
