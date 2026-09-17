@@ -107,9 +107,12 @@ def load_model(
     if selected_device not in {"cuda", "mps", "cpu"}:
         raise ValueError("device must be one of: 'cuda', 'mps', or 'cpu'")
 
-    # Lower precision reduces memory use on accelerators.  CPU inference stays
-    # float32 because it is the most broadly compatible starting point.
-    dtype = torch.float32 if selected_device == "cpu" else torch.bfloat16
+    if selected_device == "cpu":
+        dtype = torch.float32
+    elif selected_device == "cuda":
+        dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    else:
+        dtype = torch.float16
     access_token = token or os.environ.get("HF_TOKEN")
     if not access_token:
         raise RuntimeError("Set HF_TOKEN in .env before loading MedGemma.")
