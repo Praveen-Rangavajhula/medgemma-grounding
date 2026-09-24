@@ -33,8 +33,8 @@ The next experiment uses the official CheXlocalize release, which contains
 CheXpert images and labels plus radiologist-drawn pathology contours. The data
 is deliberately stored under `data/chexlocalize/`, which is ignored by Git.
 
-Download the official release after registering and accepting its terms at the
-[Stanford AIMI CheXlocalize page](https://aimi.stanford.edu/datasets/chexlocalize).
+Follow the official project's step-by-step
+[CheXlocalize download instructions](https://github.com/rajpurkarlab/cheXlocalize/blob/master/download_instructions.md).
 Preserve its native layout:
 
 ```text
