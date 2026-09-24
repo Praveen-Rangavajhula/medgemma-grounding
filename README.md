@@ -31,14 +31,14 @@ This repository intentionally includes only the reproducible scaffold and no res
 
 The next experiment uses the official CheXlocalize release, which contains
 CheXpert images and labels plus radiologist-drawn pathology contours. The data
-is deliberately stored under `data/chexlocalize/`, which is ignored by Git.
+is deliberately stored under `data/`, which is ignored by Git.
 
 Follow the official project's step-by-step
 [CheXlocalize download instructions](https://github.com/rajpurkarlab/cheXlocalize/blob/master/download_instructions.md).
 Preserve its native layout:
 
 ```text
-data/chexlocalize/
+data/
 ├── CheXpert/
 │   ├── val/
 │   ├── val_labels.csv

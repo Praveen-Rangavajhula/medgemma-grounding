@@ -152,7 +152,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Load and inspect one localized CheXlocalize finding."
     )
-    parser.add_argument("--data-root", type=Path, default=Path("data/chexlocalize"))
+    parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument("--finding", default="Pleural Effusion")
     parser.add_argument("--split", choices=("val", "test"), default="val")
     arguments = parser.parse_args()
