@@ -112,7 +112,9 @@ def load_model(
     elif selected_device == "cuda":
         dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
     else:
-        dtype = torch.float16
+        # MedGemma emits only padding tokens with FP16 on Apple MPS, while
+        # BF16 is stable and keeps the same memory footprint.
+        dtype = torch.bfloat16
     access_token = token or os.environ.get("HF_TOKEN")
     if not access_token:
         raise RuntimeError("Set HF_TOKEN in .env before loading MedGemma.")
