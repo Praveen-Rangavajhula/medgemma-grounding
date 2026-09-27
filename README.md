@@ -16,6 +16,28 @@ uv sync --dev
 uv run pytest
 ```
 
+## Alternative environments
+
+For `pip`, a standard virtual environment, or Conda, install the same runtime
+dependencies listed in `pyproject.toml` with the single `requirements.txt`:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+For Conda:
+
+```bash
+conda create -n medgemma-grounding python=3.11
+conda activate medgemma-grounding
+python -m pip install -r requirements.txt
+```
+
+When changing runtime dependencies, update `pyproject.toml` and
+`requirements.txt` together, then run `uv lock`.
+
 ## Project layout
 
 ```text
