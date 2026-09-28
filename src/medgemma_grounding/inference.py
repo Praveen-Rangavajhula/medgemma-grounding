@@ -85,6 +85,7 @@ def load_model(
     *,
     device: str | None = None,
     token: str | None = None,
+    revision: str | None = None,
 ) -> ModelBundle:
     """Load a MedGemma model and its matching processor.
 
@@ -92,6 +93,7 @@ def load_model(
         model_id: A Hugging Face MedGemma model identifier.
         device: ``"cuda"``, ``"mps"``, or ``"cpu"``.  If omitted, detect one.
         token: A Hugging Face read token.  If omitted, use ``HF_TOKEN``.
+        revision: Optional checkpoint commit to load reproducibly.
 
     Returns:
         A :class:`ModelBundle` that can be supplied to :func:`generate`.
@@ -120,11 +122,12 @@ def load_model(
         raise RuntimeError("Set HF_TOKEN in .env before loading MedGemma.")
 
     LOGGER.info("Loading %s on %s using %s", model_id, selected_device, dtype)
-    processor = processor_class.from_pretrained(model_id, token=access_token)
+    processor = processor_class.from_pretrained(model_id, token=access_token, revision=revision)
     model = model_class.from_pretrained(
         model_id,
         dtype=dtype,
         token=access_token,
+        revision=revision,
     )
     model.to(selected_device)
     model.eval()  # We are generating, not training.
@@ -154,18 +157,8 @@ def load_image(image_path: str | Path) -> Any:
         return source.convert("RGB")
 
 
-def generate(
-    bundle: ModelBundle,
-    image: Any,
-    prompt: str,
-    *,
-    max_new_tokens: int = 128,
-) -> str:
-    """Ask MedGemma one question about one image and return its response."""
-
-    if max_new_tokens < 1:
-        raise ValueError("max_new_tokens must be at least 1")
-
+def prepare_inputs(bundle: ModelBundle, image: Any, prompt: str) -> Any:
+    """Use the same image/chat formatting for generation and activation capture."""
     messages = [
         {
             "role": "user",
@@ -175,13 +168,26 @@ def generate(
             ],
         }
     ]
-    inputs = bundle.processor.apply_chat_template(
+    return bundle.processor.apply_chat_template(
         messages,
         add_generation_prompt=True,
         tokenize=True,
         return_dict=True,
         return_tensors="pt",
     ).to(bundle.device, dtype=bundle.model.dtype)
+
+
+def generate(
+    bundle: ModelBundle,
+    image: Any,
+    prompt: str,
+    *,
+    max_new_tokens: int = 128,
+) -> str:
+    """Ask MedGemma one question about one image and return its response."""
+    if max_new_tokens < 1:
+        raise ValueError("max_new_tokens must be at least 1")
+    inputs = prepare_inputs(bundle, image, prompt)
     input_length = inputs["input_ids"].shape[-1]
 
     LOGGER.info("Generating response")
