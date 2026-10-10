@@ -47,7 +47,7 @@ When changing runtime dependencies, update `pyproject.toml` and
 └── tests/
 ```
 
-This repository intentionally includes only the reproducible scaffold and no research methodology implementation yet.
+The repository contains small, reproducible experiments rather than a full analysis pipeline.
 
 ## CheXlocalize: inspect one localized case
 
@@ -82,16 +82,16 @@ uv run python -m medgemma_grounding.chexlocalize
 it returns the image path, known label, image dimensions, and expert contours
 without performing inference or looping over the dataset.
 
-## Gemma Scope 2: reconstruction control
+## Gemma Scope 2 on MedGemma
 
-Run the SAE on its intended model, **Gemma 3 4B-IT**, before studying transfer
-to MedGemma. Accept the [Gemma terms](https://huggingface.co/google/gemma-3-4b-it)
-and set `HF_TOKEN` in `.env`, then run:
+To check whether the Gemma Scope 2 SAE transfers to MedGemma 1.5, run one
+image and then the fixed 20-image CheXpert validation pilot:
 
 ```bash
-uv run python -m medgemma_grounding.gemma_scope
+uv run python -m medgemma_grounding.medgemma_scope
+uv run python -m medgemma_grounding.medgemma_scope --pilot
 ```
 
-The script saves a single-input reconstruction summary to
-`results/gemma_scope/gemma3_reconstruction.json`. This control does not show
-that SAE features transfer to MedGemma or have medical meaning.
+The JSON results are saved under `results/gemma_scope/`. The earlier
+`gemma_scope` command and `gemma3_reconstruction.json` remain the Gemma 3
+control; SAE reconstruction alone does not establish feature meaning.
