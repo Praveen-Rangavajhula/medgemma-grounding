@@ -93,16 +93,39 @@ def run(image_path: Path, prompt: str, revision: str | None = None):
         release=SAE_RELEASE, sae_id=SAE_ID, device="cpu", dtype="float32"
     )
     sae.eval()
+
+    # Validate the checkpoint's own metadata. SAELens currently returns a
+    # normalized config dict too, but don't make the run depend on optional
+    # fields being present in that returned dict across SAELens versions.
+    sae_config_path = try_to_load_from_cache(
+        SAE_REPO, f"resid_post/{SAE_ID}/config.json"
+    )
+    if not isinstance(sae_config_path, str):
+        raise RuntimeError("Could not identify the downloaded SAE config revision.")
+    sae_checkpoint_cfg = json.loads(Path(sae_config_path).read_text())
     expected_hook = "blocks.17.hook_resid_post"
-    if raw_cfg["model_name"] != MODEL_ID or raw_cfg["hook_name"] != expected_hook:
-        raise ValueError(f"Unexpected SAE training site: {raw_cfg}")
+    if (
+        sae_checkpoint_cfg.get("model_name") != MODEL_ID
+        or raw_cfg.get("model_name", MODEL_ID) != MODEL_ID
+        or raw_cfg.get("hook_name", expected_hook) != expected_hook
+    ):
+        raise ValueError(
+            "Unexpected SAE training site. Checkpoint config: "
+            f"{sae_checkpoint_cfg}; SAELens config keys: {sorted(raw_cfg)}"
+        )
     if sae.cfg.normalize_activations != "none":
         raise ValueError("Review the checkpoint normalization before using this experiment.")
     # Google's converter specifies a text-model-relative output hook. Our model
     # is the multimodal wrapper, whose text backbone is model.language_model.
-    match = re.fullmatch(r"model\.layers\.(\d+)\.output", raw_cfg["hf_hook_name"])
+    match = re.fullmatch(
+        r"model\.layers\.(\d+)\.output",
+        sae_checkpoint_cfg.get("hf_hook_point_in", ""),
+    )
     if match is None or int(match[1]) != 17:
-        raise ValueError(f"Unexpected Hugging Face hook: {raw_cfg['hf_hook_name']}")
+        raise ValueError(
+            "Unexpected Hugging Face hook in SAE checkpoint config: "
+            f"{sae_checkpoint_cfg.get('hf_hook_point_in')}"
+        )
     hook_name = f"model.language_model.layers.{match[1]}"
     sae_path = try_to_load_from_cache(SAE_REPO, f"resid_post/{SAE_ID}/params.safetensors")
     if not isinstance(sae_path, str):
@@ -141,7 +164,8 @@ def run(image_path: Path, prompt: str, revision: str | None = None):
         "sae_release": SAE_RELEASE,
         "sae_id": SAE_ID,
         "sae_revision": sae_revision,
-        "sae_config": raw_cfg,
+        "sae_config": sae_checkpoint_cfg,
+        "sae_lens_config": raw_cfg,
         "hook": hook_name,
         "layer_indexing": "zero-based, block output before final model normalization",
         "image_path": str(image_path),
