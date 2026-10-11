@@ -121,6 +121,10 @@ def summarize(cases):
             group: statistics.median(case["metrics"][group]["relative_squared_error"] for case in cases)
             for group in ("image", "text")
         },
+        "median_reconstruction_r_squared": {
+            group: statistics.median(case["metrics"][group]["explained_variance"] for case in cases)
+            for group in ("image", "text")
+        },
         "median_kl_from_baseline": {
             condition: statistics.median(case["next_token"][condition]["kl_from_baseline"] for case in cases)
             for condition in ("reconstruction", "zero_ablation")

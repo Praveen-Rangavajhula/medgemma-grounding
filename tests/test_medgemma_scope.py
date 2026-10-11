@@ -1,13 +1,14 @@
 """Local checks for cohort selection and residual interventions."""
 
 import csv
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 import torch
 
-from medgemma_grounding.medgemma_scope import pilot_cases
+from medgemma_grounding.medgemma_scope import pilot_cases, summarize
 from medgemma_grounding.sae_reconstruction import logit_metrics, replace_residual
 
 
@@ -40,6 +41,39 @@ def test_next_token_metrics():
     changed = logit_metrics(reference, torch.tensor([[[0., 1., 3.]]]))
     assert changed["kl_from_baseline"] > 0
     assert not changed["top_token_preserved"]
+
+
+def test_summary_includes_median_reconstruction_r_squared():
+    cases = [
+        {
+            "metrics": {
+                "image": {"relative_squared_error": 0.1, "explained_variance": 0.8},
+                "text": {"relative_squared_error": 0.2, "explained_variance": 0.6},
+            },
+            "next_token": {
+                "reconstruction": {"kl_from_baseline": 0.1, "top_token_preserved": True},
+                "zero_ablation": {"kl_from_baseline": 1.0},
+            },
+        },
+        {
+            "metrics": {
+                "image": {"relative_squared_error": 0.2, "explained_variance": 0.9},
+                "text": {"relative_squared_error": 0.3, "explained_variance": 0.8},
+            },
+            "next_token": {
+                "reconstruction": {"kl_from_baseline": 0.2, "top_token_preserved": False},
+                "zero_ablation": {"kl_from_baseline": 2.0},
+            },
+        },
+    ]
+
+    summary = summarize(cases)
+
+    assert summary["median_reconstruction_r_squared"] == pytest.approx(
+        {"image": 0.85, "text": 0.7}
+    )
+    assert "explained_variance" in cases[0]["metrics"]["image"]
+    json.dumps(summary, allow_nan=False)
 
 
 def test_pilot_is_deterministic_balanced_and_patient_disjoint(tmp_path: Path):
