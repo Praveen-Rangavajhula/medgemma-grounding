@@ -95,3 +95,7 @@ uv run python -m medgemma_grounding.medgemma_scope --pilot
 The JSON results are saved under `results/gemma_scope/`. The earlier
 `gemma_scope` command and `gemma3_reconstruction.json` remain the Gemma 3
 control; SAE reconstruction alone does not establish feature meaning.
+
+For the 34-layer MedGemma transfer screen, run
+`uv run python -m medgemma_grounding.medgemma_scope_layers`. It saves a resumable
+FVU, L0, and next-token KL profile to `results/gemma_scope/medgemma_layer_profile.json`.

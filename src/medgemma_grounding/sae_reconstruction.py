@@ -10,22 +10,37 @@ import torch
 
 SAE_REPO = "google/gemma-scope-2-4b-it"
 SAE_RELEASE = "gemma-scope-2-4b-it-res"
+SAE_RELEASE_ALL = "gemma-scope-2-4b-it-res-all"
 SAE_ID = "layer_17_width_16k_l0_medium"
 SAE_SOURCE_MODEL = "google/gemma-3-4b-it"
 HOOK_NAME = "model.language_model.layers.17"
 
 
-def load_scope_sae():
-    """Load and validate the Gemma 3 layer-17 checkpoint used in both checks."""
+def checkpoint_spec(layer: int = 17, *, all_layers: bool = False):
+    """Identify the released residual SAE and matching MedGemma layer hook."""
+    if not 0 <= layer < 34:
+        raise ValueError("Layer must be between 0 and 33.")
+    if not all_layers and layer != 17:
+        raise ValueError("The original residual SAE release is only used at layer 17.")
+    release = SAE_RELEASE_ALL if all_layers else SAE_RELEASE
+    sae_id = f"layer_{layer}_width_16k_l0_big" if all_layers else SAE_ID
+    folder = "resid_post_all" if all_layers else "resid_post"
+    hook_name = f"model.language_model.layers.{layer}"
+    return release, sae_id, folder, hook_name
+
+
+def load_scope_sae(layer: int = 17, *, all_layers: bool = False):
+    """Load and validate one Gemma 3 residual SAE for the matching layer."""
     from huggingface_hub import try_to_load_from_cache
     from sae_lens import SAE
 
+    release, sae_id, folder, _ = checkpoint_spec(layer, all_layers=all_layers)
     sae, raw_cfg, _ = SAE.from_pretrained_with_cfg_and_sparsity(
-        release=SAE_RELEASE, sae_id=SAE_ID, device="cpu", dtype="float32"
+        release=release, sae_id=sae_id, device="cpu", dtype="float32"
     )
     sae.eval()
-    config_path = try_to_load_from_cache(SAE_REPO, f"resid_post/{SAE_ID}/config.json")
-    weights_path = try_to_load_from_cache(SAE_REPO, f"resid_post/{SAE_ID}/params.safetensors")
+    config_path = try_to_load_from_cache(SAE_REPO, f"{folder}/{sae_id}/config.json")
+    weights_path = try_to_load_from_cache(SAE_REPO, f"{folder}/{sae_id}/params.safetensors")
     if not isinstance(config_path, str) or not isinstance(weights_path, str):
         raise RuntimeError("Could not identify the downloaded SAE config and checkpoint.")
     sae_revision = Path(weights_path).parents[2].name
@@ -34,13 +49,15 @@ def load_scope_sae():
     checkpoint_cfg = json.loads(Path(config_path).read_text())
     hf_hook = checkpoint_cfg.get("hf_hook_point_in", "")
     match = re.fullmatch(r"model\.layers\.(\d+)\.output", hf_hook)
+    expected_hook = f"blocks.{layer}.hook_resid_post"
     if (
         checkpoint_cfg.get("model_name") != SAE_SOURCE_MODEL
         or raw_cfg.get("model_name", SAE_SOURCE_MODEL) != SAE_SOURCE_MODEL
-        or raw_cfg.get("hook_name", "blocks.17.hook_resid_post") != "blocks.17.hook_resid_post"
-        or match is None or int(match[1]) != 17
+        or raw_cfg.get("hook_name", expected_hook) != expected_hook
+        or match is None or int(match[1]) != layer
         or sae.cfg.normalize_activations != "none"
         or sae.cfg.d_in != 2560
+        or sae.cfg.d_sae != checkpoint_cfg.get("width")
     ):
         raise ValueError("SAE checkpoint source, hook, width, or normalization differs from the expected control.")
     return sae, checkpoint_cfg, raw_cfg, sae_revision
