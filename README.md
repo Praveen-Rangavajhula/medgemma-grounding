@@ -99,3 +99,5 @@ control; SAE reconstruction alone does not establish feature meaning.
 For the 34-layer MedGemma transfer screen, run
 `uv run python -m medgemma_grounding.medgemma_scope_layers`. It saves a resumable
 FVU, L0, and next-token KL profile to `results/gemma_scope/medgemma_layer_profile.json`.
+FVU and L0 exclude special tokens; KL measures the next-token distribution after
+reconstructing every input position, including special tokens.

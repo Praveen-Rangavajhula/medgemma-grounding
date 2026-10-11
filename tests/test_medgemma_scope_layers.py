@@ -9,7 +9,7 @@ from medgemma_grounding.medgemma_scope_layers import (
     parse_layers,
     save_profile,
 )
-from medgemma_grounding.sae_reconstruction import SAE_RELEASE_ALL, checkpoint_spec
+from medgemma_grounding.sae_reconstruction import SAE_RELEASE_ALL, SAE_REVISION, checkpoint_spec
 
 
 def test_pooled_fvu_and_l0_weight_tokens_across_cases():
@@ -51,7 +51,7 @@ def test_profile_resume_requires_same_experiment(tmp_path):
     output = tmp_path / "profile.json"
     manifest = {"model_id": "medgemma", "model_revision": "commit", "prompt": "fixed", "cases": [1]}
     profile = load_profile(output, manifest, [0, 17])
-    profile["layers"].append({"layer": 0})
+    profile["layers"].append({"layer": 0, "sae_revision": SAE_REVISION})
     save_profile(output, profile)
 
     assert [entry["layer"] for entry in load_profile(output, manifest, [0, 17])["layers"]] == [0]
@@ -59,6 +59,10 @@ def test_profile_resume_requires_same_experiment(tmp_path):
         load_profile(output, {**manifest, "prompt": "changed"}, [0, 17])
     with pytest.raises(ValueError, match="different cases, model, prompt"):
         load_profile(output, manifest, [0, 33])
+    profile["layers"][0]["sae_revision"] = "different"
+    save_profile(output, profile)
+    with pytest.raises(ValueError, match="different SAE revision"):
+        load_profile(output, manifest, [0, 17])
 
 
 def test_layer_selector():

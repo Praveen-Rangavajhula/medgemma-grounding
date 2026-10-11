@@ -16,6 +16,7 @@ import torch
 from medgemma_grounding.inference import DEFAULT_MODEL_ID, load_image, load_model, prepare_inputs
 from medgemma_grounding.sae_reconstruction import (
     SAE_RELEASE_ALL,
+    SAE_REVISION,
     capture_residual,
     checkpoint_spec,
     encode_decode,
@@ -116,6 +117,8 @@ def load_profile(output: Path, manifest: dict, layers: list[int]):
     completed = [entry["layer"] for entry in profile["layers"]]
     if len(completed) != len(set(completed)) or any(layer not in layers for layer in completed):
         raise ValueError("Existing layer profile has duplicate or unexpected layer results.")
+    if any(entry.get("sae_revision") != SAE_REVISION for entry in profile["layers"]):
+        raise ValueError("Existing layer profile uses a different SAE revision.")
     return profile
 
 
@@ -150,6 +153,8 @@ def screen_layer(bundle, prepared, layer: int):
                 "reconstruction_sse": (selected.double() - selected_hat.double()).square().sum().item(),
                 "active_features": torch.count_nonzero(selected_features).item(),
             }
+        # KL measures replacement at every position, including the special
+        # chat tokens excluded from the image/text FVU and L0 summaries.
         replaced_logits = replace_residual(bundle.model, inputs, hook_name, reconstructed.unsqueeze(0))
         measured.append({
             "image_path": case["image_path"],
@@ -188,12 +193,15 @@ def run(pilot_path: Path = PILOT, output: Path = OUTPUT, layers: list[int] | Non
     if done == set(layers):
         return profile
 
+    versions = {name: version(name) for name in ("torch", "transformers", "sae-lens")}
+    if profile["layers"] and profile.get("versions") != versions:
+        raise ValueError("Existing layer profile uses different package versions.")
     bundle = load_model(DEFAULT_MODEL_ID, revision=manifest["model_revision"])
     profile.update({
         "device": bundle.device,
         "model_dtype": str(bundle.model.dtype),
         "sae_device_dtype": "cpu/float32",
-        "versions": {name: version(name) for name in ("torch", "transformers", "sae-lens")},
+        "versions": versions,
     })
     prepared = []
     for case in manifest["cases"]:

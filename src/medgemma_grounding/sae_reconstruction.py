@@ -9,6 +9,7 @@ from pathlib import Path
 import torch
 
 SAE_REPO = "google/gemma-scope-2-4b-it"
+SAE_REVISION = "3e94b68be95290aada5b7525cf431d3040f81bb1"
 SAE_RELEASE = "gemma-scope-2-4b-it-res"
 SAE_RELEASE_ALL = "gemma-scope-2-4b-it-res-all"
 SAE_ID = "layer_17_width_16k_l0_medium"
@@ -31,36 +32,71 @@ def checkpoint_spec(layer: int = 17, *, all_layers: bool = False):
 
 def load_scope_sae(layer: int = 17, *, all_layers: bool = False):
     """Load and validate one Gemma 3 residual SAE for the matching layer."""
-    from huggingface_hub import try_to_load_from_cache
+    from huggingface_hub import hf_hub_download
     from sae_lens import SAE
+    from safetensors.torch import load_file
 
     release, sae_id, folder, _ = checkpoint_spec(layer, all_layers=all_layers)
-    sae, raw_cfg, _ = SAE.from_pretrained_with_cfg_and_sparsity(
-        release=release, sae_id=sae_id, device="cpu", dtype="float32"
-    )
-    sae.eval()
-    config_path = try_to_load_from_cache(SAE_REPO, f"{folder}/{sae_id}/config.json")
-    weights_path = try_to_load_from_cache(SAE_REPO, f"{folder}/{sae_id}/params.safetensors")
-    if not isinstance(config_path, str) or not isinstance(weights_path, str):
-        raise RuntimeError("Could not identify the downloaded SAE config and checkpoint.")
-    sae_revision = Path(weights_path).parents[2].name
-    if Path(config_path).parents[2].name != sae_revision:
-        raise ValueError("SAE config and weights came from different repository revisions.")
-    checkpoint_cfg = json.loads(Path(config_path).read_text())
+    checkpoint_folder = f"{folder}/{sae_id}"
+    config_path = Path(hf_hub_download(
+        SAE_REPO, f"{checkpoint_folder}/config.json", revision=SAE_REVISION
+    ))
+    weights_path = Path(hf_hub_download(
+        SAE_REPO, f"{checkpoint_folder}/params.safetensors", revision=SAE_REVISION
+    ))
+    if any(path.parents[2].name != SAE_REVISION for path in (config_path, weights_path)):
+        raise ValueError("SAE config and weights did not come from the pinned revision.")
+    checkpoint_cfg = json.loads(config_path.read_text())
     hf_hook = checkpoint_cfg.get("hf_hook_point_in", "")
     match = re.fullmatch(r"model\.layers\.(\d+)\.output", hf_hook)
     expected_hook = f"blocks.{layer}.hook_resid_post"
+    if checkpoint_cfg.get("model_name") != SAE_SOURCE_MODEL or match is None or int(match[1]) != layer:
+        raise ValueError("SAE checkpoint source or hook differs from the expected control.")
+
+    # SAE-Lens's Gemma 3 loader has no revision argument. Supply its residual
+    # checkpoint conversion using files downloaded from one pinned commit.
+    def pinned_loader(repo_id, folder_name, device, force_download, cfg_overrides):
+        if repo_id != SAE_REPO or folder_name != checkpoint_folder or force_download:
+            raise ValueError("Unexpected SAE-Lens checkpoint request.")
+        weights = load_file(str(weights_path), device=device)
+        d_in, d_sae = weights["w_enc"].shape
+        config = {
+            "architecture": "jumprelu",
+            "d_in": d_in,
+            "d_sae": d_sae,
+            "dtype": "float32",
+            "device": device,
+            "model_name": checkpoint_cfg["model_name"],
+            "hook_name": expected_hook,
+            "hf_hook_name": hf_hook,
+            "apply_b_dec_to_input": False,
+            "normalize_activations": "none",
+            "reshape_activations": "none",
+            **(cfg_overrides or {}),
+        }
+        state = {
+            "W_enc": weights["w_enc"],
+            "W_dec": weights["w_dec"],
+            "b_enc": weights["b_enc"],
+            "b_dec": weights["b_dec"],
+            "threshold": weights["threshold"],
+        }
+        return config, state, None
+
+    sae, raw_cfg, _ = SAE.from_pretrained_with_cfg_and_sparsity(
+        release=release, sae_id=sae_id, device="cpu", dtype="float32",
+        converter=pinned_loader,
+    )
+    sae.eval()
     if (
-        checkpoint_cfg.get("model_name") != SAE_SOURCE_MODEL
-        or raw_cfg.get("model_name", SAE_SOURCE_MODEL) != SAE_SOURCE_MODEL
+        raw_cfg.get("model_name", SAE_SOURCE_MODEL) != SAE_SOURCE_MODEL
         or raw_cfg.get("hook_name", expected_hook) != expected_hook
-        or match is None or int(match[1]) != layer
         or sae.cfg.normalize_activations != "none"
         or sae.cfg.d_in != 2560
         or sae.cfg.d_sae != checkpoint_cfg.get("width")
     ):
         raise ValueError("SAE checkpoint source, hook, width, or normalization differs from the expected control.")
-    return sae, checkpoint_cfg, raw_cfg, sae_revision
+    return sae, checkpoint_cfg, raw_cfg, SAE_REVISION
 
 
 def token_groups(input_ids, attention_mask, image_token_id, special_ids):
