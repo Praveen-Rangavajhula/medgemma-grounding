@@ -47,7 +47,7 @@ When changing runtime dependencies, update `pyproject.toml` and
 └── tests/
 ```
 
-This repository intentionally includes only the reproducible scaffold and no research methodology implementation yet.
+The repository contains small, reproducible experiments rather than a full analysis pipeline.
 
 ## CheXlocalize: inspect one localized case
 
@@ -81,3 +81,23 @@ uv run python -m medgemma_grounding.chexlocalize
 `find_positive_case()` is the case-level loader intended for the next step;
 it returns the image path, known label, image dimensions, and expert contours
 without performing inference or looping over the dataset.
+
+## Gemma Scope 2 on MedGemma
+
+To check whether the Gemma Scope 2 SAE transfers to MedGemma 1.5, run one
+image and then the fixed 20-image CheXpert validation pilot:
+
+```bash
+uv run python -m medgemma_grounding.medgemma_scope
+uv run python -m medgemma_grounding.medgemma_scope --pilot
+```
+
+The JSON results are saved under `results/gemma_scope/`. The earlier
+`gemma_scope` command and `gemma3_reconstruction.json` remain the Gemma 3
+control; SAE reconstruction alone does not establish feature meaning.
+
+For the 34-layer MedGemma transfer screen, run
+`uv run python -m medgemma_grounding.medgemma_scope_layers`. It saves a resumable
+FVU, L0, and next-token KL profile to `results/gemma_scope/medgemma_layer_profile.json`.
+FVU and L0 exclude special tokens; KL measures the next-token distribution after
+reconstructing every input position, including special tokens.
