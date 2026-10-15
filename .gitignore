@@ -38,5 +38,8 @@ checkpoints/
 activations/
 models/
 
+# Local research logbook (not shared or backed up by Git)
+/docs/
+
 # macOS
 .DS_Store
