@@ -101,3 +101,40 @@ For the 34-layer MedGemma transfer screen, run
 FVU, L0, and next-token KL profile to `results/gemma_scope/medgemma_layer_profile.json`.
 FVU and L0 exclude special tokens; KL measures the next-token distribution after
 reconstructing every input position, including special tokens.
+
+## Layer-14 feature viewer
+
+Capture the exact 20 pilot cases with the layer-14 16k `l0_big` SAE, then
+browse the saved features locally:
+
+```bash
+uv run python -m medgemma_grounding.medgemma_features
+uv run streamlit run src/medgemma_grounding/feature_viewer.py
+```
+
+Run both commands from the repository root. Extraction saves
+`results/gemma_scope/layer14_features/manifest.json` and `activations.pt`:
+model/processor/SAE revisions, original image paths and hashes, expert labels,
+raw greedy MedGemma answers (up to 32 tokens), token identities, and lossless
+sparse features for every input token. Use `--overwrite` to replace this cache.
+The viewer uses the original images at the recorded project location. Browsing
+requires neither model weights nor a Hugging Face token and performs no inference.
+
+Choose a feature ID to compare all 20 cases, inspect strongly or weakly
+activating examples, and view image-position grids, text highlights and raw
+token values. Cases rank by maximum image-token activation by default; text
+ranking is also available. The selected feature shares one color scale across
+all cases, excluding special tokens. Labels do not determine ranking.
+
+The optional overlay follows the verified single-image Gemma 3 path: direct
+resize to 896×896, 64×64 vision patches, 4×4 pooling, then a row-major 16×16
+image-token grid. Unsupported layouts disable overlays. These are contextual
+decoder-position activations, **not pathology-localization or causal-attribution
+maps**. Only input/prefill activations are captured; the displayed generated
+answer is context. The 20 cases develop the workflow, not confirm medical
+feature meanings; broader discovery and separate confirmation patients come later.
+
+The gallery, ranking and overlay code adapts Imageomics'
+[`saev-demo` feature viewer](https://github.com/Imageomics/saev-demo/blob/5fa496c9f8b63f503b1c8d9b0b9ef25dcd81b09e/demo/feature_vis.py),
+replacing its DINOv2/SAE inference path with saved MedGemma activations.
+Source attribution and the upstream MIT notice are retained in the viewer.
