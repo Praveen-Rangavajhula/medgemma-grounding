@@ -10,3 +10,5 @@ sae-lens==6.51.3
 numpy>=1.26.0
 matplotlib>=3.9.0
 streamlit>=1.49.0
+scipy>=1.15.0
+pycocotools>=2.0.10

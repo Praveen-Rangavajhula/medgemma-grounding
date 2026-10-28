@@ -112,6 +112,59 @@ uv run python -m medgemma_grounding.medgemma_features
 uv run streamlit run src/medgemma_grounding/feature_viewer.py
 ```
 
+### Discovery cohort (validation only)
+
+Build the fixed patient split, then extract **discovery only** into a new
+experiment directory. The first command audits 202 eligible images / 200
+patients, includes all 20 pilot patients in discovery, and reserves 60 patients
+for confirmation. Original images stay in place; test data is not used.
+
+```bash
+uv run python -m medgemma_grounding.chexlocalize \
+  --cohort-output results/gemma_scope/discovery_v1/cohort.json
+uv run python -m medgemma_grounding.medgemma_features \
+  --cohort-manifest results/gemma_scope/discovery_v1/cohort.json \
+  --output-dir results/gemma_scope/discovery_v1 --limit 2
+```
+
+Inspect the smoke records and runtime estimate before continuing. Resume with
+the same extraction command **without `--limit 2`**; completed cases are validated
+and skipped. Changed inputs, extraction sources, revisions, or settings are
+rejected. The schema-1 pilot cache is never overwritten.
+
+After extraction, compute patient-level discovery statistics without inference:
+
+```bash
+uv run python -m medgemma_grounding.feature_analysis \
+  --experiment-dir results/gemma_scope/discovery_v1
+uv run streamlit run src/medgemma_grounding/feature_viewer.py
+```
+
+The viewer defaults to `results/gemma_scope/discovery_v1` when its report exists;
+otherwise set **Saved feature directory** in the sidebar to that path. It displays four ranked association tables,
+the frozen shortlist, score/activation plots, counterexamples, expert-mask
+outlines, token values, and reconstruction distortion. Full token features are
+loaded only for the selected case; browsing does not load MedGemma or an SAE.
+
+Artifacts include `protocol.json`, `cohort.json`, per-case JSON/sparse tensors
+under `cases/`, `rankings.csv`, `shortlist.json`, `discovery_report.json`,
+`mask_audit.json`, and `mask_alignment.png`. Yes/No tokenization is verified at
+the actual generation boundary. The score is a next-token logit difference,
+not a calibrated clinical probability. Mean image-position and final-input
+features are screened separately; each patient contributes one observation.
+Selection is exploratory, not a significance claim over 16,384 features.
+
+Confirmation inference/browsing is deliberately unavailable. The shortlist
+freezes discovery associations, **not** a future intervention/spatial protocol.
+No feature suppression, image masking, spatial performance evaluation, or
+mitigation is performed by these commands. Decoder-position overlays are not
+anatomical localization or causal attribution.
+
+Methods adapted from the [Line of Sight aggregation scripts](https://github.com/multimodal-interpretability/multimodal-saes/tree/8a466949994700be3eb67e3364375083d7697562/probing_approximation)
+and [official CheXlocalize mask conversion](https://github.com/rajpurkarlab/cheXlocalize/blob/2a79492e9ecdf1c3cad74d968134cadc16be4a70/annotation_to_segmentation.py).
+
+### Existing 20-case cache
+
 Run both commands from the repository root. Extraction saves
 `results/gemma_scope/layer14_features/manifest.json` and `activations.pt`:
 model/processor/SAE revisions, original image paths and hashes, expert labels,

@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -148,6 +149,142 @@ def inspect_case(case: CheXlocalizeCase) -> tuple[int, int]:
         return image.size
 
 
+def expert_mask(case, annotations, segmentations):
+    """Decode official RLE and independently check Pillow polygon rasterization.
+
+    Matches cheXlocalize annotation_to_segmentation.py: ImageDraw.polygon on
+    an original-resolution 1-bit image. Missing records never become negative labels.
+    Returns (status, binary mask or None, detail).
+    """
+    import numpy as np
+    from PIL import Image, ImageDraw
+    from pycocotools import mask as coco_mask
+
+    finding = "Pleural Effusion"
+    raw = annotations.get(case["case_id"])
+    released = segmentations.get(case["case_id"])
+    if raw is None and released is None:
+        return "missing", None, "No annotation record"
+    try:
+        size = tuple(case["image_size"])
+        if raw is not None and tuple(raw["img_size"]) != size:
+            raise ValueError("Annotation dimensions differ from image")
+        polygons = raw.get(finding, []) if raw is not None else []
+        canvas = Image.new("1", (size[1], size[0]), 0)
+        draw = ImageDraw.Draw(canvas)
+        for polygon in polygons:
+            draw.polygon([tuple(p) for p in polygon], outline=1, fill=1)
+        expected = np.asarray(canvas, dtype=bool)
+        rle = released.get(finding) if released is not None else None
+        if rle is None or raw is None:
+            raise ValueError("Raw record or released finding mask missing from annotated case")
+        decoded = coco_mask.decode(rle).astype(bool)
+        if decoded.shape != size:
+            raise ValueError(f"Released mask shape {decoded.shape} differs from image {size}")
+        if not np.array_equal(decoded, expected):
+            raise ValueError(f"Released mask and original-coordinate polygons disagree at {np.count_nonzero(decoded != expected)} pixels")
+        return "present nonempty" if decoded.any() else "present empty", decoded, "RLE/polygon agreement"
+    except (ValueError, KeyError, TypeError, IndexError, RuntimeError, OverflowError) as error:
+        return "invalid/mismatched", None, str(error)
+
+
+def validation_cohort(data_root, pilot_patients, *, expected=(202, 200, 64), targets=(45, 95)):
+    """Audit validation only and split patients with the preregistered hash order.
+
+    Every eligible image is included independently of annotation availability.
+    Confirmation images are read only for eligibility/hash auditing, never inference.
+    """
+    from PIL import Image
+
+    root = Path(data_root)
+    labels, annotation_path = _metadata_paths(root, "val")
+    annotations = json.loads(annotation_path.read_text())
+    cases, exclusions = [], []
+    for row in _label_rows(labels):
+        reasons = []
+        if row["Frontal/Lateral"] != "Frontal":
+            reasons.append("not frontal")
+        if row["Pleural Effusion"] not in {"0", "1", "0.0", "1.0"}:
+            reasons.append("not explicit binary label")
+        if reasons:
+            exclusions.append({"csv_path": row["Path"], "reasons": reasons})
+            continue
+        path = _image_path(root, "val", row["Path"])
+        with Image.open(path) as image:
+            image.load()
+            width, height = image.size
+        case_id = _case_id(row["Path"])
+        annotation = annotations.get(case_id)
+        cases.append({
+            "case_id": case_id, "image_path": str(path.resolve()),
+            "image_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "patient": Path(row["Path"]).parts[-3], "label": int(float(row["Pleural Effusion"])),
+            "image_size": [height, width], "csv_record": row,
+            "annotation_status": "missing" if annotation is None else
+                "present nonempty" if annotation.get("Pleural Effusion") else "present empty",
+        })
+    patients = sorted({c["patient"] for c in cases})
+    if (len(cases), len(patients), sum(c["label"] for c in cases)) != expected:
+        raise ValueError("Unexpected validation eligibility counts; revise protocol explicitly")
+    if not set(pilot_patients) <= set(patients):
+        raise ValueError("Pilot patients are not all eligible")
+    positive = {p for p in patients if any(c["label"] for c in cases if c["patient"] == p)}
+    discovery = set(pilot_patients)
+    for stratum, count in ((positive, targets[0]), (set(patients) - positive, targets[1])):
+        forced = discovery & stratum
+        if len(forced) > count or len(stratum) < count:
+            raise ValueError("Cannot satisfy fixed stratified split")
+        remaining = sorted(stratum - forced, key=lambda p: hashlib.sha256(
+            f"medgemma-effusion-v1|seed=42|{p}".encode()).hexdigest())
+        discovery.update(remaining[:count - len(forced)])
+    hashes = {}
+    for case in cases:
+        case["partition"] = "discovery" if case["patient"] in discovery else "confirmation"
+        previous = hashes.setdefault(case["image_sha256"], case["partition"])
+        if previous != case["partition"]:
+            raise ValueError("Duplicate image hash crosses partitions")
+    if len({c["case_id"] for c in cases}) != len(cases):
+        raise ValueError("Duplicate case ID")
+    segmentation_path = root / "CheXlocalize" / "gt_segmentations_val.json"
+    return {"schema_version": 2, "data_root": str(root.resolve()), "seed": 42,
+            "split_rule": "medgemma-effusion-v1|seed=42|<patient_id>",
+            "pilot_patients": sorted(pilot_patients), "cases": cases, "exclusions": exclusions,
+            "metadata_sha256": {str(p.resolve()): hashlib.sha256(p.read_bytes()).hexdigest()
+                                  for p in (labels, annotation_path, segmentation_path)},
+            "prior_exposure": "20 pilot patients inspected; aggregate validation previously viewed; pretraining overlap unknown"}
+
+
+def validate_partition(cohort, pilot_patients, *, expected=(202, 200, 64), targets=(45, 95)):
+    """Recompute the frozen membership rule; do not trust a partition label alone."""
+    cases = cohort["cases"]
+    patients = {c["patient"] for c in cases}
+    if ((len(cases), len(patients), sum(c["label"] for c in cases)) != expected
+            or len({c["case_id"] for c in cases}) != len(cases)
+            or any(c["label"] not in (0, 1) or '/test/' in c['image_path'] for c in cases)
+            or not set(pilot_patients) <= patients
+            or cohort["pilot_patients"] != sorted(pilot_patients)):
+        raise ValueError("Invalid discovery cohort identity/counts")
+    positive = {c["patient"] for c in cases if c["label"] == 1}
+    chosen = set(pilot_patients)
+    for stratum, target in ((positive, targets[0]), (patients - positive, targets[1])):
+        forced = chosen & stratum
+        if len(forced) > target:
+            raise ValueError("Pilot exceeds split target")
+        remaining = sorted(stratum - forced, key=lambda p: hashlib.sha256(
+            f"medgemma-effusion-v1|seed=42|{p}".encode()).hexdigest())
+        chosen.update(remaining[:target - len(forced)])
+    seen = {}
+    for c in cases:
+        required = "discovery" if c["patient"] in chosen else "confirmation"
+        if c["partition"] != required:
+            raise ValueError("Partition differs from frozen patient split")
+        if seen.setdefault(c["image_sha256"], required) != required:
+            raise ValueError("Duplicate image crosses partitions")
+    if len(chosen) != sum(targets):
+        raise ValueError("Unexpected discovery patient count")
+    return [c for c in cases if c["partition"] == "discovery"]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Load and inspect one localized CheXlocalize finding."
@@ -155,7 +292,23 @@ def main() -> None:
     parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument("--finding", default="Pleural Effusion")
     parser.add_argument("--split", choices=("val", "test"), default="val")
+    parser.add_argument("--cohort-output", type=Path, help="Audit and partition validation; no model inference")
+    parser.add_argument("--pilot-json", type=Path, default=Path("results/gemma_scope/medgemma_pilot.json"))
     arguments = parser.parse_args()
+
+    if arguments.cohort_output:
+        if arguments.split != "val":
+            parser.error("Discovery cohort supports validation only")
+        pilot = json.loads(arguments.pilot_json.read_text())
+        cohort = validation_cohort(arguments.data_root, {c["patient"] for c in pilot["cases"]})
+        from medgemma_grounding.medgemma_features import atomic_json
+        if arguments.cohort_output.exists():
+            if json.loads(arguments.cohort_output.read_text()) != cohort:
+                raise ValueError("Existing cohort differs; do not overwrite experiment identity")
+        else:
+            atomic_json(arguments.cohort_output, cohort)
+        print(f"Audited {len(cohort['cases'])} validation images: {arguments.cohort_output}")
+        return
 
     case = find_positive_case(arguments.data_root, arguments.finding, split=arguments.split)
     loaded_size = inspect_case(case)

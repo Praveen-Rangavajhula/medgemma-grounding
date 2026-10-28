@@ -108,6 +108,44 @@ def token_groups(input_ids, attention_mask, image_token_id, special_ids):
     return {"image": image, "text": valid & ~image & ~special}
 
 
+def position_groups(input_ids, attention_mask, image_token_id, special_ids):
+    """Explicit overlapping masks, including chat tokens in non-image positions.
+
+    Discovery is single-image, unpadded prefill. Reject right padding rather than
+    accidentally measuring the last padding logit with logits_to_keep=1.
+    """
+    if input_ids.ndim != 2 or input_ids.shape[0] != 1 or input_ids.shape != attention_mask.shape:
+        raise ValueError("Expected matching single-example IDs and attention mask")
+    valid = attention_mask[0].detach().cpu().bool()
+    if not valid.any() or not valid[-1]:
+        raise ValueError("Final input position must be valid, not right padding")
+    groups = token_groups(input_ids, attention_mask, image_token_id, special_ids)
+    final = torch.zeros_like(valid)
+    final[valid.nonzero()[-1]] = True
+    return {**groups, "non_image": valid & ~groups["image"], "final": final, "all": valid}
+
+
+def masked_replacement(original, reconstructed, mask):
+    """Replace exactly selected positions, preserving all unselected values."""
+    if original.shape != reconstructed.shape or original.ndim != 3 or original.shape[:2] != (1, len(mask)):
+        raise ValueError("Replacement and position-mask dimensions differ")
+    result = original.clone()
+    result[:, mask] = reconstructed[:, mask]
+    return result
+
+
+def prompt_positions(input_ids, prompt_ids):
+    """Locate one exact user-prompt token span, excluding all chat formatting."""
+    ids = input_ids[0].detach().cpu().tolist()
+    starts = [i for i in range(len(ids) - len(prompt_ids) + 1)
+              if ids[i:i + len(prompt_ids)] == prompt_ids]
+    if not prompt_ids or len(starts) != 1:
+        raise ValueError("User prompt must have one exact token span in processed input")
+    mask = torch.zeros(len(ids), dtype=torch.bool)
+    mask[starts[0]:starts[0] + len(prompt_ids)] = True
+    return mask
+
+
 def capture_residual(model, inputs, hook_name):
     """Record one prefill pass without changing outputs; always remove the hook."""
     captured = []
