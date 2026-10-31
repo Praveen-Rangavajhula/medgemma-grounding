@@ -144,6 +144,9 @@ def run_app():
     discovery = Path("results/gemma_scope/discovery_v1")
     default = discovery if (discovery / "discovery_report.json").exists() else OUTPUT
     directory = Path(st.sidebar.text_input("Saved feature directory", str(default))).expanduser()
+    interventions = st.sidebar.text_input("Optional intervention results directory", "")
+    if interventions:
+        run_intervention_viewer(Path(interventions).expanduser(), directory)
     if (directory / "protocol.json").exists():
         run_discovery_viewer(directory)
         return
@@ -400,6 +403,124 @@ def run_discovery_viewer(directory):
     with st.expander("Pooled fidelity and protocol"):
         st.json(report["fidelity"])
         st.json(protocol)
+
+
+def signed_overlay(image, heat, scale):
+    """Diverging signed attribution; zero is transparent, symmetric fixed limits."""
+    image = image.convert("RGB")
+    if scale <= 0:
+        return image.copy()
+    normalized = np.clip(np.asarray(heat, dtype=np.float32) / scale, -1, 1)
+    up = np.asarray(Image.fromarray(normalized).resize(image.size, Image.Resampling.NEAREST))
+    rgb = np.asarray(image, dtype=np.float32) / 255
+    alpha = (0.8 * np.abs(up))[..., None]
+    colors = colormaps["coolwarm"]((up + 1) / 2)[..., :3]
+    return Image.fromarray(np.clip(((1 - alpha) * rgb + alpha * colors) * 255, 0, 255).astype(np.uint8))
+
+
+def run_intervention_viewer(directory, source):
+    """Optional model-free E-005 section. Reads partial and failed runs too."""
+    import streamlit as st
+    from medgemma_grounding.medgemma_interventions import read_json, load_case
+    from medgemma_grounding.medgemma_features import identity_hash, load_discovery_case
+
+    st.subheader("Layer-14 feature interventions")
+    try:
+        protocol = read_json(directory / "protocol.json")
+        if (identity_hash({k: v for k, v in protocol.items() if k != "protocol_hash"}) != protocol["protocol_hash"]
+                or Path(protocol["source_directory"]).resolve() != source.resolve()):
+            raise ValueError("Intervention protocol/source directory mismatch")
+        for name, digest in protocol["source_artifact_sha256"].items():
+            if file_sha256(source / name) != digest:
+                raise ValueError("Source discovery artifact changed")
+        report = read_json(directory / "intervention_report.json") if (directory / "intervention_report.json").exists() else None
+        pilot = read_json(directory / "pilot_report.json") if (directory / "pilot_report.json").exists() else None
+        for saved in (report, pilot):
+            if saved and saved["protocol_hash"] != protocol["protocol_hash"]:
+                raise ValueError("Saved report belongs to another protocol")
+        if report and (file_sha256(directory / "intervention_summaries.pt") != report["summary_tensor_sha256"]
+                       or file_sha256(directory / "intervention_effects.csv") != report["effects_csv_sha256"]):
+            raise ValueError("Intervention report artifact checksum mismatch")
+        if not report or not report["complete"]:
+            st.warning("Intervention run is incomplete. Available measurements are partial.")
+        if pilot:
+            st.write("Pilot calibration by position group")
+            if not pilot["complete"]:
+                st.warning("Pilot calibration is incomplete. Group labels and the effect floor are provisional; inspect the failure diagnostics before interpreting them.")
+            st.json({"tau": pilot["tau"], "groups": pilot["groups"]})
+        for path in sorted(directory.glob("failure_*.json")):
+            st.error(read_json(path)["error"])
+        candidates = read_json(directory / "candidates.json") if (directory / "candidates.json").exists() else None
+        if candidates:
+            if candidates["candidates_hash"] != identity_hash({k: v for k, v in candidates.items() if k != "candidates_hash"}):
+                raise ValueError("Candidate checksum mismatch")
+            st.dataframe([{"group": p["group"], "target": p["target"]["feature"],
+                           "comparison": p["comparison"]["feature"], "matching_distance": p["matching_distance"]}
+                          for p in candidates["pairs"]], hide_index=True)
+            st.caption("Matched comparisons are not null features. Matching distances expose imperfect matches.")
+        import csv
+        effects_path = directory / "intervention_effects.csv"
+        effects = list(csv.DictReader(effects_path.open())) if effects_path.exists() else []
+        # Pilot measurements are available even when calibration stops expansion.
+        measurements = effects or (pilot["measurements"] if pilot else [])
+        if measurements:
+            chart = [{**r, "predicted_delta": float(r["predicted_delta"]), "actual_delta": float(r["actual_delta"]),
+                      "alpha": float(r["alpha"])} for r in measurements]
+            bound = max(max(abs(r["predicted_delta"]), abs(r["actual_delta"])) for r in chart) or 1
+            st.vega_lite_chart({"layer": [
+                {"data": {"values": chart}, "mark": "point", "encoding": {
+                    "x": {"field": "predicted_delta", "type": "quantitative"},
+                    "y": {"field": "actual_delta", "type": "quantitative"},
+                    "color": {"field": "group", "type": "nominal"},
+                    "tooltip": [{"field": k} for k in ("case_id", "feature", "group", "alpha", "outcome")]}},
+                {"data": {"values": [{"x": -bound, "y": -bound}, {"x": bound, "y": bound}]},
+                 "mark": {"type": "line", "strokeDash": [4, 4], "color": "gray"},
+                 "encoding": {"x": {"field": "x", "type": "quantitative"}, "y": {"field": "y", "type": "quantitative"}}}
+            ]}, width="stretch")
+            st.dataframe(chart, hide_index=True)
+            st.vega_lite_chart(chart, {"mark": "point", "encoding": {
+                "x": {"field": "alpha", "type": "quantitative", "title": "Removal fraction"},
+                "y": {"field": "actual_delta", "type": "quantitative"},
+                "color": {"field": "outcome", "type": "nominal"},
+                "tooltip": [{"field": k} for k in ("case_id", "feature", "group", "actual_delta")]}}, width="stretch")
+        if report:
+            st.write("Patient-weighted effects and descriptive bootstrap intervals")
+            st.json({k: report[k] for k in ("status", "summaries", "target_minus_comparison", "limitations")})
+        available = [case_id for case_id in protocol["discovery_case_ids"] if (directory / "cases" / f"{case_id}.json").exists()]
+        if not available:
+            st.info("No attribution shards saved yet. Check the pilot diagnostics above.")
+            return
+        case_id = st.selectbox("Intervention case", available)
+        feature = int(st.number_input("Intervention feature ID", min_value=0, max_value=protocol["sae_width"] - 1,
+                                      value=int(measurements[0]["feature"]) if measurements else 0))
+        record, payload = load_case(directory, protocol, case_id)
+        original, source_payload = load_discovery_case(source, case_id)
+        activity = feature_values({case_id: source_payload["features"]}, feature)[case_id]
+        attribution = feature_values({case_id: payload["attribution"]}, feature)[case_id]
+        st.dataframe([{**t, "activation": float(activity[i]), "predicted_full_removal_delta": float(attribution[i]),
+                       "position_group": next((k for k, v in record["positions"].items() if i in v), "padding")}
+                      for i, t in enumerate(record["tokens"])], hide_index=True)
+        # Shared scales from compact offline summaries, never per-image maxima.
+        compact = torch.load(directory / "intervention_summaries.pt", map_location="cpu", weights_only=True) if report else None
+        scale = compact["signed_color_limits"][feature].item() if compact else 0
+        image = Image.open(original["image_path"]).convert("RGB")
+        heat = image_map(original, attribution)
+        columns = st.columns(2)
+        columns[0].image(image, caption=f"{case_id} · expert {original['label']} · original answer {original['answer']}")
+        if heat is not None:
+            columns[1].image(signed_overlay(image, heat, scale),
+                            caption=f"Predicted full-removal score change · blue negative / red positive · ±{scale:.4g}")
+        if not compact:
+            st.info("Run the offline report stage to compute shared signed color scales.")
+        source_report_path = source / "discovery_report.json"
+        activity_heat = image_map(original, activity)
+        if source_report_path.exists() and activity_heat is not None:
+            activity_scale = read_json(source_report_path)["discovery_color_limits"].get(str(feature), 0)
+            st.image(make_overlay(image, activity_heat, activity_scale),
+                     caption="Original feature activation (positive activity scale, separate from signed attribution)")
+        st.caption("Contextual decoder-position attribution; it does not establish pixel-level causality or anatomical localization. Expert-mask display restrictions remain in the discovery section.")
+    except (OSError, ValueError, KeyError, RuntimeError) as error:
+        st.error(f"Cannot open intervention results: {error}")
 
 
 if __name__ == "__main__":

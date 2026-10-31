@@ -163,6 +163,42 @@ anatomical localization or causal attribution.
 Methods adapted from the [Line of Sight aggregation scripts](https://github.com/multimodal-interpretability/multimodal-saes/tree/8a466949994700be3eb67e3364375083d7697562/probing_approximation)
 and [official CheXlocalize mask conversion](https://github.com/rajpurkarlab/cheXlocalize/blob/2a79492e9ecdf1c3cad74d968134cadc16be4a70/annotation_to_segmentation.py).
 
+### Layer-14 feature attribution and interventions
+
+The E-005 workflow tests first-order feature-removal estimates against direct
+residual-preserving edits on the existing discovery images. Run stages in order:
+
+```bash
+uv run python -m medgemma_grounding.medgemma_interventions --stage pilot
+uv run python -m medgemma_grounding.medgemma_interventions --stage attribute
+uv run python -m medgemma_grounding.medgemma_interventions --stage select
+uv run python -m medgemma_grounding.medgemma_interventions --stage ablate
+uv run python -m medgemma_grounding.medgemma_interventions --stage report
+```
+
+`pilot` runs the fixed 20-patient calibration, starting with its TP/TN preflight.
+Continue only if a position group qualifies in `pilot_report.json`; otherwise
+run `report` and stop. Later stages enforce this prerequisite. `attribute` and
+`ablate` accept `--limit N` newly processed cases and resume saved work.
+Selection requires complete discovery attribution. `select` and `report`
+run offline. `--stage` is required; importing the module starts no experiment.
+
+Defaults: source `results/gemma_scope/discovery_v1`, output
+`results/gemma_scope/interventions_v1`; override with `--source-dir` and
+`--output-dir`. Outputs include the fixed protocol, per-case CPU shards,
+`pilot_report.json`, `attribution_rankings.csv`, `candidates.json`,
+`intervention_effects.csv`, `intervention_report.json` and compact summaries.
+Changed protocols/settings require a new output directory. Completed treatments
+are saved individually; full ablations may take hours. The runtime stays
+MPS/BF16 with a CPU/FP32 SAE; errors stop execution without device substitution.
+
+In the feature viewer, set **Optional intervention results directory** to the
+output path. It displays calibration, signed attribution, direct removal
+effects and partial-run diagnostics. Estimates and matched comparisons remain
+discovery-selected; their uncertainty intervals are descriptive. This study
+does not establish a circuit, anatomical localization or unseen-patient benefit.
+Confirmation and test data remain reserved.
+
 ### Existing 20-case cache
 
 Run both commands from the repository root. Extraction saves
