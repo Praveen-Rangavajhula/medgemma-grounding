@@ -86,6 +86,7 @@ def load_model(
     device: str | None = None,
     token: str | None = None,
     revision: str | None = None,
+    attn_implementation: str | dict[str, str] | None = None,
 ) -> ModelBundle:
     """Load a MedGemma model and its matching processor.
 
@@ -94,6 +95,8 @@ def load_model(
         device: ``"cuda"``, ``"mps"``, or ``"cpu"``.  If omitted, detect one.
         token: A Hugging Face read token.  If omitted, use ``HF_TOKEN``.
         revision: Optional checkpoint commit to load reproducibly.
+        attn_implementation: Explicit supported Transformers attention setting;
+            omitted by default to preserve ordinary inference behavior.
 
     Returns:
         A :class:`ModelBundle` that can be supplied to :func:`generate`.
@@ -128,6 +131,7 @@ def load_model(
         dtype=dtype,
         token=access_token,
         revision=revision,
+        **({"attn_implementation": attn_implementation} if attn_implementation is not None else {}),
     )
     model.to(selected_device)
     model.eval()  # We are generating, not training.

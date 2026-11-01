@@ -13,6 +13,46 @@ import torch
 GROUPS = ("image", "final", "other_non_image")
 
 
+def tensor_diagnostics(reference, changed, *, rtol=1e-5, atol=1e-5):
+    """Measure equivalence without losing the evidence when a check fails."""
+    if reference.shape != changed.shape:
+        raise ValueError("Diagnostic tensor shapes differ")
+    a, b = reference.detach().cpu().double(), changed.detach().cpu().double()
+    finite = bool(torch.isfinite(a).all() and torch.isfinite(b).all())
+    result = {"shape": list(a.shape), "finite": finite, "rtol": rtol, "atol": atol,
+              "elements": a.numel(), "allclose": False}
+    if finite:
+        error = b - a
+        result.update(allclose=bool(torch.allclose(b, a, rtol=rtol, atol=atol)),
+                      mismatched_elements=int((error.abs() > atol + rtol * a.abs()).sum()),
+                      max_absolute_difference=error.abs().max().item() if a.numel() else 0.,
+                      rms_difference=error.square().mean().sqrt().item() if a.numel() else 0.,
+                      relative_squared_error=error.square().sum().item() / a.square().sum().item()
+                      if a.square().sum() else None)
+    return result
+
+
+def attention_settings(model):
+    """Read the actual multimodal attention configuration after public API calls."""
+    return {name: getattr(config, "_attn_implementation", None) for name, config in (
+        ("", model.config), ("text_config", model.config.text_config),
+        ("vision_config", model.config.vision_config))}
+
+
+def configure_attention(model, implementation):
+    """Use Transformers' supported API and reject unsupported/partial changes."""
+    requested = ({key: implementation for key in attention_settings(model)}
+                 if isinstance(implementation, str) else dict(implementation))
+    if (not requested or not requested.keys() <= attention_settings(model).keys()
+            or any(value not in {"sdpa", "eager"} for value in requested.values())):
+        raise ValueError("Unsupported attention setting")
+    model.set_attn_implementation(implementation)
+    actual = attention_settings(model)
+    if any(actual[key] != value for key, value in requested.items()):
+        raise ValueError(f"Attention setting was not applied consistently: {actual}")
+    return actual
+
+
 def intervention_groups(groups):
     """Partition valid processed positions; final must be a non-image position."""
     valid, image, final = (groups[k].cpu().bool() for k in ("all", "image", "final"))

@@ -165,6 +165,23 @@ and [official CheXlocalize mask conversion](https://github.com/rajpurkarlab/cheX
 
 ### Layer-14 feature attribution and interventions
 
+The E-005 MPS run stopped at gradient-forward identity. Its bounded E-006
+diagnosis uses **only its two existing preflight cases**:
+
+```bash
+uv run python -m medgemma_grounding.medgemma_preflight
+```
+
+This compares inference, no-grad, grad-enabled-without-leaf and gradient capture.
+If operator traces confirm the attention-path hypothesis, it tests explicit
+eager text attention with frozen SDPA vision attention across every mode/edit.
+It keeps BF16 and the original tolerances and measures discovery-output and
+feature-cache compatibility separately. Results go to
+`results/gemma_scope/interventions_v2_preflight/`; `--report-only` regenerates
+the report offline. E-005's `interventions_v1` is preserved. This command stops
+after two cases and cannot launch pilot/cohort work. A full rerun needs a
+separately approved protocol after reviewing these measurements.
+
 The E-005 workflow tests first-order feature-removal estimates against direct
 residual-preserving edits on the existing discovery images. Run stages in order:
 

@@ -23,6 +23,7 @@ from scipy.stats import spearmanr
 
 from medgemma_grounding.feature_interventions import (
     GROUPS, capture_gradient, feature_removal, intervention_groups, project_attribution,
+    attention_settings, tensor_diagnostics,
 )
 from medgemma_grounding.medgemma_features import (
     answer_candidates, answer_score, atomic_json, file_sha256, identity_hash,
@@ -199,7 +200,14 @@ def frozen_runtime(protocol, destination):
 
     if not torch.backends.mps.is_available():
         raise RuntimeError("The fixed E-005 runtime requires MPS; no device substitution")
-    bundle = load_model(protocol["model_id"], device="mps", revision=protocol["model_revision"])
+    attention = protocol["runtime"].get("attention_implementation")
+    bundle = load_model(protocol["model_id"], device="mps", revision=protocol["model_revision"],
+                        **({"attn_implementation": attention} if attention is not None else {}))
+    if attention is not None:
+        expected = ({k: attention for k in attention_settings(bundle.model)}
+                    if isinstance(attention, str) else attention)
+        if any(attention_settings(bundle.model)[k] != value for k, value in expected.items()):
+            raise ValueError("Requested attention implementation was not applied")
     sae, _, _, revision = load_scope_sae(14, all_layers=True)
     for module in (bundle.model, sae):
         module.eval()
@@ -249,13 +257,31 @@ def forward(bundle, inputs):
     return logits
 
 
-def identity_control(baseline, changed, candidates):
-    torch.testing.assert_close(changed, baseline, rtol=1e-5, atol=1e-5)
-    original, scored = answer_score(baseline, candidates), answer_score(changed, candidates)
-    if scored["decision"] != original["decision"]:
-        raise ValueError("Identity control changed the decision")
-    return {"max_logit_difference": (baseline - changed).abs().max().item(),
-            "score_difference": scored["score"] - original["score"]}
+class IdentityCheckError(AssertionError):
+    """Retain scores and numerical diagnostics in failed-run artifacts."""
+
+    def __init__(self, diagnostics):
+        self.diagnostics = diagnostics
+        super().__init__(f"{diagnostics['control']} identity failed: {diagnostics}")
+
+
+def identity_diagnostics(baseline, changed, candidates, name="identity"):
+    diagnostics = {"control": name, **tensor_diagnostics(baseline, changed)}
+    if diagnostics["finite"]:
+        original, scored = answer_score(baseline, candidates), answer_score(changed, candidates)
+        diagnostics.update(original_answer=original, changed_answer=scored,
+                           decision_preserved=scored["decision"] == original["decision"],
+                           score_difference=scored["score"] - original["score"],
+                           max_logit_difference=diagnostics["max_absolute_difference"],
+                           **logit_metrics(baseline, changed))
+    return diagnostics
+
+
+def identity_control(baseline, changed, candidates, name="identity"):
+    diagnostics = identity_diagnostics(baseline, changed, candidates, name)
+    if not diagnostics["allclose"] or not diagnostics.get("decision_preserved", False):
+        raise IdentityCheckError(diagnostics)
+    return diagnostics
 
 
 def collect_attribution(bundle, sae, protocol, source_record, source_payload, *, pilot=False):
@@ -277,7 +303,7 @@ def collect_attribution(bundle, sae, protocol, source_record, source_payload, *,
     gradient_hidden, gradient_logits, gradient = capture_gradient(
         bundle.model, inputs, protocol["hook"], protocol["scoring"])
     torch.testing.assert_close(gradient_hidden, hidden, rtol=1e-5, atol=1e-5)
-    controls["gradient_forward"] = identity_control(baseline, gradient_logits, protocol["scoring"])
+    controls["gradient_forward"] = identity_control(baseline, gradient_logits, protocol["scoring"], "gradient_forward")
     repeated = [scored["score"]]
     if pilot:
         for _ in range(3):
@@ -702,6 +728,7 @@ def run(stage, source=SOURCE, output=DESTINATION, limit=None):
     except Exception as error:
         atomic_json(directory / f"failure_{stage}.json", {"protocol_hash": protocol["protocol_hash"],
             "stage": stage, "error_type": type(error).__name__, "error": str(error), "traceback": traceback.format_exc(),
+            "diagnostics": getattr(error, "diagnostics", None),
             "case_id": locals().get("case_id"), "settings_changed": False})
         if stage == "pilot":
             pilot_report(directory, protocol)
