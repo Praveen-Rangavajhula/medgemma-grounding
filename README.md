@@ -245,6 +245,29 @@ discovery-selected; their uncertainty intervals are descriptive. This study
 does not establish a circuit, anatomical localization or unseen-patient benefit.
 Confirmation and test data remain reserved.
 
+### Targeted discovery with executed-size controls
+
+From the completed repaired-backend E-007 artifacts:
+
+```bash
+uv run python -m medgemma_grounding.medgemma_targeted --stage run
+# Regenerate saved-only reports without loading a model:
+uv run python -m medgemma_grounding.medgemma_targeted --stage report
+uv run streamlit run src/medgemma_grounding/feature_viewer.py
+```
+
+`run` freezes nominations and a three-direction control bank, verifies a two-case
+numerical smoke check, then continues through all 142 discovery images. It reuses
+only identical prior interventions and may take hours. Results go to
+`results/gemma_scope/targeted_discovery_v1/`; previous experiments are unchanged.
+Set **Optional intervention results directory** to that path in the viewer.
+The **E-007 calibration audit** and **Candidate evidence and visual hypotheses**
+tabs separate association, direct influence, errors and BF16-size-matched controls.
+See `report.md`, `report.json` and `methods.md` for measurements and limitations.
+Stages are resumable with fixed provenance; failures stop dependent model work.
+Discovery-selected results do not establish anatomical meaning, generalization
+or a correction policy. Confirmation and test patients remain reserved.
+
 ### Existing 20-case cache
 
 Run both commands from the repository root. Extraction saves
