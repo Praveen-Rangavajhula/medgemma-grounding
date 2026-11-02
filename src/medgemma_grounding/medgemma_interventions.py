@@ -110,7 +110,7 @@ def validate_source(source):
     return protocol, records, hashes
 
 
-def experiment_protocol(source, destination):
+def experiment_protocol(source, destination, *, repaired=None):
     source, destination = Path(source).resolve(), Path(destination).resolve()
     if source == destination or source in destination.parents or destination in source.parents:
         raise ValueError("Intervention output must be separate from E-004")
@@ -122,7 +122,7 @@ def experiment_protocol(source, destination):
                 "processor_revision": original["processor_revision"], "prompt": original["prompt"],
                 "sae_revision": original["sae_revision"], "sae_release": original["sae_release"],
                 "sae_id": original["sae_id"], "sae_width": original["sae_width"], "hook": original["hook"],
-                "scoring": original["scoring"], "pilot": choose_pilot(records),
+                "scoring": original["scoring"],
                 "discovery_case_ids": [r["case_id"] for r in records],
                 "position_definitions": {"image": "all valid processor image positions",
                     "final": "last valid input position", "other_non_image": "valid non-image minus final"},
@@ -140,6 +140,21 @@ def experiment_protocol(source, destination):
                 "source_sha256": {name: file_sha256(Path(__file__).with_name(name)) for name in (
                     "feature_interventions.py", "medgemma_interventions.py", "medgemma_features.py",
                     "sae_reconstruction.py", "inference.py", "chexlocalize.py")}}
+    if repaired is None:
+        settings["pilot"] = choose_pilot(records)
+    else:
+        settings.update(schema_version=3, experiment="E-007", fresh_encodings=True,
+                        calibration={"kind": "full_discovery", "case_ids": settings["discovery_case_ids"],
+                                     "unit": "image-feature pair; unchanged E-005 criteria"},
+                        smoke_ids=repaired["smoke_ids"], previous_artifacts=repaired["previous_artifacts"],
+                        preflight_sha256=repaired["preflight_sha256"])
+        settings["runtime"]["attention_implementation"] = {"text_config": "eager", "vision_config": "sdpa"}
+        settings["analysis"].update(stages=["smoke", "calibrate", "select", "ablate", "report"],
+            primary_evidence="attribution rank with direct half/full calibration support; measured cohort ablation effects",
+            target_eligibility="active feature with direct calibration measurements at both removal strengths; no effect-size cutoff",
+            supporting_evidence="patient-level activation label AUC and answer-score Spearman; not selection criteria")
+        settings["source_sha256"].update({name: file_sha256(Path(__file__).with_name(name)) for name in
+                                        ("medgemma_discovery.py", "feature_analysis.py")})
     path = destination / "protocol.json"
     if path.exists():
         saved = read_json(path)
@@ -182,11 +197,14 @@ def load_case(directory, protocol, case_id):
     attribution = payload["attribution"]
     source_record, source_payload = load_discovery_case(Path(protocol["source_directory"]), case_id)
     source_features = source_payload["features"]
+    features = payload["features"] if protocol.get("fresh_encodings") else source_features
     if (record["source_record_sha256"] != protocol["source_artifact_sha256"][f"cases/{case_id}.json"]
             or file_sha256(Path(protocol["source_directory"]) / "cases" / f"{case_id}.json") != record["source_record_sha256"]
             or record["tokens"] != source_record["tokens"]
             or attribution.shape != source_features.shape or not attribution.is_coalesced()
-            or not torch.equal(attribution.indices(), source_features.indices())
+            or features.shape != source_features.shape or not features.is_coalesced()
+            or not torch.isfinite(features.values()).all() or (features.values() < 0).any()
+            or not torch.equal(attribution.indices(), features.indices())
             or not torch.isfinite(attribution.values()).all()
             or payload["hidden"].shape != payload["gradient"].shape
             or payload["hidden"].shape[:2] != (1, len(record["tokens"]))):
@@ -293,9 +311,12 @@ def collect_attribution(bundle, sae, protocol, source_record, source_payload, *,
     controls["unchanged"] = identity_control(baseline,
         replace_residual(bundle.model, inputs, protocol["hook"], hidden), protocol["scoring"])
     _, features = encode_decode(sae, hidden[0])
-    torch.testing.assert_close(features, source_payload["features"].to_dense(), rtol=1e-5, atol=1e-5)
+    if not torch.isfinite(features).all() or (features < 0).any():
+        raise ValueError("Invalid fresh SAE features")
+    if not protocol.get("fresh_encodings"):
+        torch.testing.assert_close(features, source_payload["features"].to_dense(), rtol=1e-5, atol=1e-5)
     scored = answer_score(baseline, protocol["scoring"])
-    if any(scored[key] != source_record["answer_score"][key] for key in ("yes_logit", "no_logit", "decision")):
+    if not protocol.get("fresh_encodings") and any(scored[key] != source_record["answer_score"][key] for key in ("yes_logit", "no_logit", "decision")):
         raise ValueError("Original answer score changed from E-004")
     zero, _ = feature_removal(hidden, features, sae.W_dec, 0, masks["image"], 0, bundle.model.dtype)
     controls["zero_strength"] = identity_control(baseline,
@@ -314,7 +335,7 @@ def collect_attribution(bundle, sae, protocol, source_record, source_payload, *,
             repeated.append(repeated_score["score"])
     attribution, summaries = project_attribution(gradient, features, sae.W_dec, masks)
     record = {"case_id": source_record["case_id"], "patient": source_record["patient"],
-              "label": source_record["label"], "outcome": outcome(source_record), "answer_score": scored,
+              "label": source_record["label"], "outcome": outcome({**source_record, "answer_score": scored}), "answer_score": scored,
               "source_record_sha256": protocol["source_artifact_sha256"][f"cases/{source_record['case_id']}.json"],
               "tokens": source_record["tokens"], "spatial_layout": source_record["spatial_layout"],
               "source_positions": source_record["positions"],
@@ -324,6 +345,15 @@ def collect_attribution(bundle, sae, protocol, source_record, source_payload, *,
               "runtime_seconds": time.perf_counter() - start}
     payload = {"hidden": hidden, "gradient": gradient, "baseline_logits": baseline,
                "attribution": attribution, "groups": summaries}
+    if protocol.get("fresh_encodings"):
+        payload["features"] = features.to_sparse().coalesce()
+        for group, mask in masks.items():
+            summaries[group]["activation_mean"] = features[mask].mean(0)
+        record["fresh_encodings"] = True
+        record["pilot"] = False
+        record["calibration_scope"] = "full_discovery"
+        record["reference_sdpa"] = {"outcome": outcome(source_record), "answer_score": source_record["answer_score"],
+            "feature_compatibility": tensor_diagnostics(source_payload["features"].to_dense(), features)}
     return record, payload
 
 
@@ -394,16 +424,20 @@ def agreement(rows, tau):
 
 
 def pilot_report(directory, protocol):
+    """Legacy pilot or full-discovery calibration, as fixed in the protocol."""
     records, rows = [], []
     complete = True
-    for case_id in protocol["pilot"]["case_ids"]:
+    completed_cases = 0
+    full = "calibration" in protocol
+    for case_id in (protocol["calibration"]["case_ids"] if full else protocol["pilot"]["case_ids"]):
         if not (directory / "cases" / f"{case_id}.json").exists():
             complete = False
             continue
         record, payload = load_case(directory, protocol, case_id)
         records.append(record)
-        if not record["pilot"] or len(record["repeated_scores"]) != 4:
-            raise ValueError("Pilot lacks repeated original baselines")
+        case_complete = True
+        if len(record["repeated_scores"]) != 4 or not (record.get("fresh_encodings") if full else record["pilot"]):
+            raise ValueError("Calibration lacks fresh encoding or repeated baselines")
         for group in GROUPS:
             for feature in calibration_features(case_id, group, payload["groups"][group]):
                 for alpha in FRACTIONS:
@@ -412,6 +446,8 @@ def pilot_report(directory, protocol):
                         rows.append(load_treatment(path, protocol, case_id, feature, group, alpha))
                     else:
                         complete = False
+                        case_complete = False
+        completed_cases += int(case_complete)
     noise = max((r["baseline_variation"] for r in records), default=0)
     tau = max(THRESHOLDS["floor_logits"], THRESHOLDS["noise_multiplier"] * noise)
     groups = {}
@@ -426,9 +462,13 @@ def pilot_report(directory, protocol):
     result = {"protocol_hash": protocol["protocol_hash"], "complete": complete, "cases": len(records),
               "tau": tau, "largest_baseline_variation": noise, "groups": groups,
               "qualifying_groups": [k for k, v in groups.items() if v["status"] == "qualifies"],
-              "measurements": rows, "failure_diagnostics": sorted(p.name for p in directory.glob("failure_pilot.json"))}
+              "measurements": rows, "failure_diagnostics": sorted(p.name for p in directory.glob(
+                  "failure_calibrate.json" if full else "failure_pilot.json"))}
     result["report_hash"] = identity_hash(result)
-    atomic_json(directory / "pilot_report.json", result)
+    if full:
+        result.update(completed_cases=completed_cases, calibration_kind="full_discovery")
+        result["report_hash"] = identity_hash({k: v for k, v in result.items() if k != "report_hash"})
+    atomic_json(directory / ("calibration_report.json" if full else "pilot_report.json"), result)
     return result
 
 
@@ -474,7 +514,8 @@ def matched_candidates(rows, qualifying):
     pairs = []
     for group in qualifying:
         pool = [r for r in rows if r["group"] == group and r["active_patients"] > 0]
-        targets = sorted(pool, key=lambda r: (-r["mean_absolute_effect"], r["feature"]))[:5]
+        supported = [r for r in pool if r.get("calibration_half_cases", 1) and r.get("calibration_full_cases", 1)]
+        targets = sorted(supported, key=lambda r: (-r["mean_absolute_effect"], r["feature"]))[:5]
         excluded = {r["feature"] for r in targets}
         for target in targets:
             available = [r for r in pool if r["feature"] not in excluded]
@@ -501,7 +542,7 @@ def write_csv(path, rows):
     temporary.replace(path)
 
 
-def cohort_selection(directory, protocol):
+def cohort_selection(directory, protocol, ranking_rows=None):
     pilot = pilot_report(directory, protocol)
     if not pilot["complete"] or not pilot["qualifying_groups"]:
         raise ValueError("Completed qualifying pilot required for selection")
@@ -513,10 +554,11 @@ def cohort_selection(directory, protocol):
         records.append(record)
         # Keep only compact CPU summaries, not full shards/hidden states.
         payloads.append({"groups": payload["groups"]})
-    rows = patient_rankings(records, payloads)
+    rows = patient_rankings(records, payloads) if ranking_rows is None else ranking_rows
     pairs = matched_candidates(rows, pilot["qualifying_groups"])
     old = read_json(Path(protocol["source_directory"]) / "shortlist.json")
-    result = {"protocol_hash": protocol["protocol_hash"], "pilot_report_hash": pilot["report_hash"],
+    calibration_key = "calibration_report_hash" if protocol.get("fresh_encodings") else "pilot_report_hash"
+    result = {"protocol_hash": protocol["protocol_hash"], calibration_key: pilot["report_hash"],
               "input_tensor_sha256": {r["case_id"]: r["tensor_sha256"] for r in records},
               "pairs": pairs, "old_shortlist_ranks": [r for r in rows if r["feature"] in {c["feature"] for c in old["candidates"]}],
               "qualifying_groups": pilot["qualifying_groups"], "interpretation": "Discovery-selected interventions; comparisons are not nulls"}
@@ -535,7 +577,8 @@ def read_candidates(directory, protocol):
             candidates["candidates_hash"] != identity_hash({k: v for k, v in candidates.items() if k != "candidates_hash"})):
         raise ValueError("Candidate freeze checksum mismatch")
     pilot = pilot_report(directory, protocol)
-    if candidates["pilot_report_hash"] != pilot["report_hash"]:
+    calibration_key = "calibration_report_hash" if protocol.get("fresh_encodings") else "pilot_report_hash"
+    if candidates[calibration_key] != pilot["report_hash"]:
         raise ValueError("Pilot calibration changed after selection")
     for case_id, digest in candidates["input_tensor_sha256"].items():
         record, _ = load_case(directory, protocol, case_id)
@@ -582,6 +625,7 @@ def offline_report(directory, protocol):
             selected = [r for r in rows if (r["feature"], r["group"], r["alpha"]) == (feature, group, alpha)]
             summaries.append({"feature": feature, "group": group, "alpha": alpha, "role": role,
                               "overall": bootstrap_summary(selected),
+                              "correct_answers": bootstrap_summary([r for r in selected if r["original_correct"]]),
                               "outcomes": {k: bootstrap_summary([r for r in selected if r["outcome"] == k]) for k in QUOTAS},
                               "corrected_images": sum(r["corrected"] for r in selected),
                               "introduced_images": sum(r["introduced"] for r in selected),
@@ -604,16 +648,20 @@ def offline_report(directory, protocol):
     write_csv(directory / "intervention_effects.csv", rows)
     completed_cases = [c for c in protocol["discovery_case_ids"] if (directory / "cases" / f"{c}.json").exists()]
     limits = torch.zeros(protocol["sae_width"])
+    activity_limits = torch.zeros_like(limits)
     compact = {g: [] for g in GROUPS}
     for case_id in completed_cases:
         _, payload = load_case(directory, protocol, case_id)
         sparse = payload["attribution"]
         limits.scatter_reduce_(0, sparse.indices()[1], sparse.values().abs(), reduce="amax")
+        if protocol.get("fresh_encodings"):
+            features = payload["features"]
+            activity_limits.scatter_reduce_(0, features.indices()[1], features.values(), reduce="amax")
         for group in GROUPS:
             compact[group].append(payload["groups"][group]["effect"])
     tensor_path = directory / "intervention_summaries.pt"
     temporary = tensor_path.with_suffix(".pt.tmp")
-    torch.save({"case_ids": completed_cases, "signed_color_limits": limits,
+    torch.save({"case_ids": completed_cases, "signed_color_limits": limits, "activation_color_limits": activity_limits,
                 "group_effects": {g: torch.stack(v) if v else torch.empty(0, protocol["sae_width"])
                                   for g, v in compact.items()}}, temporary)
     temporary.replace(tensor_path)
@@ -622,7 +670,7 @@ def offline_report(directory, protocol):
               "expected_cases": len(protocol["discovery_case_ids"]), "measured_treatments": len(rows),
               "expected_treatments": expected, "complete": pilot["complete"] and (
                   not pilot["qualifying_groups"] or candidates is not None and len(rows) == expected),
-              "status": "pilot_stopped" if pilot["complete"] and not pilot["qualifying_groups"] else
+              "status": ("calibration_stopped" if protocol.get("fresh_encodings") else "pilot_stopped") if pilot["complete"] and not pilot["qualifying_groups"] else
                   "cohort_complete" if candidates and len(rows) == expected else "partial",
               "summaries": summaries, "target_minus_comparison": contrasts,
               "limitations": ["Discovery-selected estimates; bootstrap intervals are descriptive, not independent confirmation",

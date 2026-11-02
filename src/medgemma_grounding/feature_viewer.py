@@ -147,6 +147,8 @@ def run_app():
     interventions = st.sidebar.text_input("Optional intervention results directory", "")
     if interventions:
         run_intervention_viewer(Path(interventions).expanduser(), directory)
+        if not st.sidebar.checkbox("Also show original SDPA discovery reference", value=False):
+            return
     if (directory / "protocol.json").exists():
         run_discovery_viewer(directory)
         return
@@ -434,7 +436,9 @@ def run_intervention_viewer(directory, source):
             if file_sha256(source / name) != digest:
                 raise ValueError("Source discovery artifact changed")
         report = read_json(directory / "intervention_report.json") if (directory / "intervention_report.json").exists() else None
-        pilot = read_json(directory / "pilot_report.json") if (directory / "pilot_report.json").exists() else None
+        fresh = protocol.get("fresh_encodings", False)
+        calibration_path = directory / ("calibration_report.json" if fresh else "pilot_report.json")
+        pilot = read_json(calibration_path) if calibration_path.exists() else None
         for saved in (report, pilot):
             if saved and saved["protocol_hash"] != protocol["protocol_hash"]:
                 raise ValueError("Saved report belongs to another protocol")
@@ -444,7 +448,7 @@ def run_intervention_viewer(directory, source):
         if not report or not report["complete"]:
             st.warning("Intervention run is incomplete. Available measurements are partial.")
         if pilot:
-            st.write("Pilot calibration by position group")
+            st.write("Full-discovery calibration by position group" if fresh else "Pilot calibration by position group")
             if not pilot["complete"]:
                 st.warning("Pilot calibration is incomplete. Group labels and the effect floor are provisional; inspect the failure diagnostics before interpreting them.")
             st.json({"tau": pilot["tau"], "groups": pilot["groups"]})
@@ -457,8 +461,16 @@ def run_intervention_viewer(directory, source):
             st.dataframe([{"group": p["group"], "target": p["target"]["feature"],
                            "comparison": p["comparison"]["feature"], "matching_distance": p["matching_distance"]}
                           for p in candidates["pairs"]], hide_index=True)
-            st.caption("Matched comparisons are not null features. Matching distances expose imperfect matches.")
+            st.caption("Matched comparisons are not null features. Matching minimizes activity/norm distance without a maximum-distance cutoff; the nearest available comparison can still be a poor match. Inspect distances and perturbation norms.")
         import csv
+        rankings_path = directory / "attribution_rankings.csv"
+        if fresh and rankings_path.exists():
+            st.write("Attribution rankings with direct calibration evidence")
+            st.caption("Estimated removal effects are primary; half/full measurements show where estimates were checked. AUC/Spearman describe associations, not selection criteria. Nonqualifying groups are not trusted for selection.")
+            rankings = list(csv.DictReader(rankings_path.open()))
+            ranking_group = st.selectbox("Ranking position group", ["image", "final", "other_non_image"])
+            st.dataframe(sorted([r for r in rankings if r["group"] == ranking_group],
+                                key=lambda r: int(r["rank"]))[:50], hide_index=True)
         effects_path = directory / "intervention_effects.csv"
         effects = list(csv.DictReader(effects_path.open())) if effects_path.exists() else []
         # Pilot measurements are available even when calibration stops expansion.
@@ -485,7 +497,33 @@ def run_intervention_viewer(directory, source):
                 "tooltip": [{"field": k} for k in ("case_id", "feature", "group", "actual_delta")]}}, width="stretch")
         if report:
             st.write("Patient-weighted effects and descriptive bootstrap intervals")
+            if report["summaries"]:
+                st.write("Direct cohort measurements for frozen features (not activation associations)")
+                measured_rows = []
+                for summary in report["summaries"]:
+                    overall = summary["overall"]
+                    if not overall["patients"]:
+                        continue
+                    def mean_delta(stratum):
+                        return stratum.get("actual_delta", {}).get("mean")
+                    measured_rows.append({
+                        "group": summary["group"], "feature": summary["feature"], "role": summary["role"],
+                        "removal": summary["alpha"], "patients": overall["patients"],
+                        "mean_abs_delta": overall["absolute_effect"]["mean"],
+                        "abs_delta_ci95": overall["absolute_effect"]["ci95"],
+                        "mean_signed_delta": mean_delta(overall),
+                        "correct_mean_delta": mean_delta(summary["correct_answers"]),
+                        "FP_mean_delta": mean_delta(summary["outcomes"]["FP"]),
+                        "FN_mean_delta": mean_delta(summary["outcomes"]["FN"]),
+                        "mean_realized_l2": overall["realized_l2"]["mean"],
+                        "corrected_images": summary["corrected_images"],
+                        "introduced_images": summary["introduced_images"],
+                    })
+                st.dataframe(measured_rows, hide_index=True)
             st.json({k: report[k] for k in ("status", "summaries", "target_minus_comparison", "limitations")})
+            if fresh:
+                st.json({k: report[k] for k in ("stages", "stop_reason", "repaired_outcomes", "calibration_by_group")})
+                st.caption("Calibration summaries pool different checked features; only the selected-feature ablations estimate fixed-feature cohort effects. Correct answers, false positives and false negatives use the repaired baseline.")
         available = [case_id for case_id in protocol["discovery_case_ids"] if (directory / "cases" / f"{case_id}.json").exists()]
         if not available:
             st.info("No attribution shards saved yet. Check the pilot diagnostics above.")
@@ -495,7 +533,7 @@ def run_intervention_viewer(directory, source):
                                       value=int(measurements[0]["feature"]) if measurements else 0))
         record, payload = load_case(directory, protocol, case_id)
         original, source_payload = load_discovery_case(source, case_id)
-        activity = feature_values({case_id: source_payload["features"]}, feature)[case_id]
+        activity = feature_values({case_id: payload["features"] if fresh else source_payload["features"]}, feature)[case_id]
         attribution = feature_values({case_id: payload["attribution"]}, feature)[case_id]
         st.dataframe([{**t, "activation": float(activity[i]), "predicted_full_removal_delta": float(attribution[i]),
                        "position_group": next((k for k, v in record["positions"].items() if i in v), "padding")}
@@ -506,7 +544,8 @@ def run_intervention_viewer(directory, source):
         image = Image.open(original["image_path"]).convert("RGB")
         heat = image_map(original, attribution)
         columns = st.columns(2)
-        columns[0].image(image, caption=f"{case_id} · expert {original['label']} · original answer {original['answer']}")
+        answer = record["answer_score"]["decision"] if fresh else original["answer"]
+        columns[0].image(image, caption=f"{case_id} · expert {original['label']} · baseline answer {answer}")
         if heat is not None:
             columns[1].image(signed_overlay(image, heat, scale),
                             caption=f"Predicted full-removal score change · blue negative / red positive · ±{scale:.4g}")
@@ -514,10 +553,11 @@ def run_intervention_viewer(directory, source):
             st.info("Run the offline report stage to compute shared signed color scales.")
         source_report_path = source / "discovery_report.json"
         activity_heat = image_map(original, activity)
-        if source_report_path.exists() and activity_heat is not None:
-            activity_scale = read_json(source_report_path)["discovery_color_limits"].get(str(feature), 0)
+        if activity_heat is not None and ((fresh and compact) or (not fresh and source_report_path.exists())):
+            activity_scale = (compact["activation_color_limits"][feature].item() if fresh
+                              else read_json(source_report_path)["discovery_color_limits"].get(str(feature), 0))
             st.image(make_overlay(image, activity_heat, activity_scale),
-                     caption="Original feature activation (positive activity scale, separate from signed attribution)")
+                     caption="Fresh eager-backend feature activation" if fresh else "Original feature activation (separate from signed attribution)")
         st.caption("Contextual decoder-position attribution; it does not establish pixel-level causality or anatomical localization. Expert-mask display restrictions remain in the discovery section.")
     except (OSError, ValueError, KeyError, RuntimeError) as error:
         st.error(f"Cannot open intervention results: {error}")

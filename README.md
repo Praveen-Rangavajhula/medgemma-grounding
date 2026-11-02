@@ -165,6 +165,35 @@ and [official CheXlocalize mask conversion](https://github.com/rajpurkarlab/cheX
 
 ### Layer-14 feature attribution and interventions
 
+The repaired E-007 workflow uses fresh eager-text / SDPA-vision encodings for
+all 142 discovery images (140 patients), not the old SDPA intervention inputs:
+
+```bash
+uv run python -m medgemma_grounding.medgemma_discovery --stage run
+```
+
+Requires the saved `discovery_v1` cohort and successful
+`interventions_v2_preflight` verification below; missing/drifted inputs are refused.
+This automatically runs the two-case numerical smoke, full-discovery half/full
+removal calibration, then selection and matched-comparison ablations **only for
+qualifying position groups**. Existing calibration thresholds are unchanged.
+No qualifying groups is a valid stopping result, not permission to relax gates.
+Outputs go to `results/gemma_scope/interventions_v3_discovery/`: a new protocol,
+fresh CPU shards, calibration effects, attribution rankings, gated candidates,
+intervention effects and a stage-by-stage report. Previous outputs are preserved.
+`--stage report` regenerates offline; explicit `smoke`, `calibrate`, `select` and
+`ablate` stages support inspection/resume (`--limit N` on calibrate/ablate counts
+new cases). Protocol drift requires a new output directory.
+
+In the feature viewer, keep the saved feature directory on `discovery_v1` for
+image metadata and set the optional intervention directory to
+`results/gemma_scope/interventions_v3_discovery`. That section displays **fresh**
+activity, signed attribution, measured removals and repaired-baseline outcomes.
+AUC/Spearman are supporting associations; effects remain discovery-selected,
+not confirmed medical meanings, localization or unseen-patient improvements.
+Confirmation/test remain reserved. Historical commands below retain their
+original scope; they are not the repaired full-discovery entry point.
+
 The E-005 MPS run stopped at gradient-forward identity. Its bounded E-006
 diagnosis uses **only its two existing preflight cases**:
 

@@ -40,7 +40,7 @@ def aggregate_patients(records, summaries):
     return metadata, {k: np.stack(v) for k, v in arrays.items()}
 
 
-def feature_rankings(patients, summaries, min_active=5):
+def feature_rankings(patients, summaries, min_active=5, representations=("image_mean", "final")):
     """ROC-AUC via tie-aware ranks; Spearman via centered rank correlation.
 
     No significance tests are performed on features selected in this same data.
@@ -53,7 +53,7 @@ def feature_rankings(patients, summaries, min_active=5):
     target = rankdata(scores).astype(float)
     target -= target.mean()
     rows = []
-    for representation in ("image_mean", "final"):
+    for representation in representations:
         x = np.asarray(summaries[representation], dtype=float)
         if not np.isfinite(x).all() or len(x) != len(labels):
             raise ValueError("Invalid patient-feature summaries")
