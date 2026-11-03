@@ -40,3 +40,9 @@ models/
 
 # macOS
 .DS_Store
+
+# Log files
+.log
+
+# Notebook hidden files
+.ipynb_checkpoints

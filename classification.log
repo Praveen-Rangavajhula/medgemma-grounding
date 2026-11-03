@@ -1,0 +1,1450 @@
+nohup: ignoring input
+Total frontal images: 202
+
+Pleural Effusion labels:
+Pleural Effusion
+0.0    138
+1.0     64
+Name: count, dtype: int64
+
+Fixed prompt:
+Is pleural effusion present in this chest X-ray? Answer Yes or No.
+Loading weights:   0%|          | 0/883 [00:00<?, ?it/s]Loading weights:  55%|█████▍    | 482/883 [00:00<00:00, 4818.44it/s]Loading weights: 100%|██████████| 883/883 [00:00<00:00, 6706.04it/s]
+
+Image 1/202
+Image: data/CheXpert/val/patient64541/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.004070138093084097
+
+Image 2/202
+Image: data/CheXpert/val/patient64542/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 3/202
+Image: data/CheXpert/val/patient64543/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.0019267346942797303
+
+Image 4/202
+Image: data/CheXpert/val/patient64544/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.000552778597921133
+
+Image 5/202
+Image: data/CheXpert/val/patient64545/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the left side. The left
+Parsed prediction: 1
+Yes-vs-No score: 0.9998766183853149
+
+Image 6/202
+Image: data/CheXpert/val/patient64546/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a small pleural effusion in the left lower lung field
+Parsed prediction: 1
+Yes-vs-No score: 0.9997965693473816
+
+Image 7/202
+Image: data/CheXpert/val/patient64547/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 8/202
+Image: data/CheXpert/val/patient64547/study1/view2_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0010322310263291001
+
+Image 9/202
+Image: data/CheXpert/val/patient64548/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999979734420776
+
+Image 10/202
+Image: data/CheXpert/val/patient64549/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0015011822106316686
+
+Image 11/202
+Image: data/CheXpert/val/patient64550/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0015011822106316686
+
+Image 12/202
+Image: data/CheXpert/val/patient64551/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0008040859247557819
+
+Image 13/202
+Image: data/CheXpert/val/patient64552/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is increased
+Parsed prediction: 1
+Yes-vs-No score: 0.9999992847442627
+
+Image 14/202
+Image: data/CheXpert/val/patient64553/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0024726232513785362
+
+Image 15/202
+Image: data/CheXpert/val/patient64554/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001700722612440586
+
+Image 16/202
+Image: data/CheXpert/val/patient64555/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be pleural effusion present in the right hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9840936064720154
+
+Image 17/202
+Image: data/CheXpert/val/patient64556/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0015011822106316686
+
+Image 18/202
+Image: data/CheXpert/val/patient64557/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.005220125894993544
+
+Image 19/202
+Image: data/CheXpert/val/patient64558/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 20/202
+Image: data/CheXpert/val/patient64559/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 21/202
+Image: data/CheXpert/val/patient64560/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.006692850962281227
+
+Image 22/202
+Image: data/CheXpert/val/patient64561/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0010322310263291001
+
+Image 23/202
+Image: data/CheXpert/val/patient64562/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001325022429227829
+
+Image 24/202
+Image: data/CheXpert/val/patient64563/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.000626334163825959
+
+Image 25/202
+Image: data/CheXpert/val/patient64564/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.008577484637498856
+
+Image 26/202
+Image: data/CheXpert/val/patient64565/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001700722612440586
+
+Image 27/202
+Image: data/CheXpert/val/patient64566/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0024726232513785362
+
+Image 28/202
+Image: data/CheXpert/val/patient64567/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0010322310263291001
+
+Image 29/202
+Image: data/CheXpert/val/patient64568/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 30/202
+Image: data/CheXpert/val/patient64569/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a small pleural effusion in the left lower hemith
+Parsed prediction: 1
+Yes-vs-No score: 0.9947799444198608
+
+Image 31/202
+Image: data/CheXpert/val/patient64570/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no clear evidence of significant pleural
+Parsed prediction: None
+Yes-vs-No score: 0.03308597952127457
+
+Image 32/202
+Image: data/CheXpert/val/patient64571/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9997695088386536
+
+Image 33/202
+Image: data/CheXpert/val/patient64572/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0007096704212017357
+
+Image 34/202
+Image: data/CheXpert/val/patient64573/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no clear evidence of significant pleural
+Parsed prediction: None
+Yes-vs-No score: 0.11920291930437088
+
+Image 35/202
+Image: data/CheXpert/val/patient64574/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0035936026833951473
+
+Image 36/202
+Image: data/CheXpert/val/patient64575/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0007096704212017357
+
+Image 37/202
+Image: data/CheXpert/val/patient64576/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0028009270317852497
+
+Image 38/202
+Image: data/CheXpert/val/patient64577/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the right side of the chest
+Parsed prediction: 1
+Yes-vs-No score: 0.9999963045120239
+
+Image 39/202
+Image: data/CheXpert/val/patient64578/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.000552778597921133
+
+Image 40/202
+Image: data/CheXpert/val/patient64579/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no clear evidence of significant pleural
+Parsed prediction: None
+Yes-vs-No score: 0.22270014882087708
+
+Image 41/202
+Image: data/CheXpert/val/patient64580/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is bl
+Parsed prediction: 1
+Yes-vs-No score: 0.9999994039535522
+
+Image 42/202
+Image: data/CheXpert/val/patient64581/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 43/202
+Image: data/CheXpert/val/patient64581/study1/view2_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.00048785717808641493
+
+Image 44/202
+Image: data/CheXpert/val/patient64582/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999988079071045
+
+Image 45/202
+Image: data/CheXpert/val/patient64583/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be pleural effusion present in the right hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9997695088386536
+
+Image 46/202
+Image: data/CheXpert/val/patient64584/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0007096704212017357
+
+Image 47/202
+Image: data/CheXpert/val/patient64585/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.014063626527786255
+
+Image 48/202
+Image: data/CheXpert/val/patient64586/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001700722612440586
+
+Image 49/202
+Image: data/CheXpert/val/patient64587/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no clear evidence of pleural effusion
+Parsed prediction: None
+Yes-vs-No score: 0.01098694372922182
+
+Image 50/202
+Image: data/CheXpert/val/patient64588/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 51/202
+Image: data/CheXpert/val/patient64589/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.03308597952127457
+
+Image 52/202
+Image: data/CheXpert/val/patient64590/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0015011822106316686
+
+Image 53/202
+Image: data/CheXpert/val/patient64591/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.24508501589298248
+
+Image 54/202
+Image: data/CheXpert/val/patient64592/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9999599456787109
+
+Image 55/202
+Image: data/CheXpert/val/patient64593/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0008040859247557819
+
+Image 56/202
+Image: data/CheXpert/val/patient64594/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0008040859247557819
+
+Image 57/202
+Image: data/CheXpert/val/patient64595/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0007096704212017357
+
+Image 58/202
+Image: data/CheXpert/val/patient64596/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999339580535889
+
+Image 59/202
+Image: data/CheXpert/val/patient64597/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0024726232513785362
+
+Image 60/202
+Image: data/CheXpert/val/patient64598/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.08509904146194458
+
+Image 61/202
+Image: data/CheXpert/val/patient64599/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0024726232513785362
+
+Image 62/202
+Image: data/CheXpert/val/patient64600/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 63/202
+Image: data/CheXpert/val/patient64601/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0035936026833951473
+
+Image 64/202
+Image: data/CheXpert/val/patient64602/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.009708477184176445
+
+Image 65/202
+Image: data/CheXpert/val/patient64603/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the right hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999984502792358
+
+Image 66/202
+Image: data/CheXpert/val/patient64604/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be pleural effusion present in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999885559082031
+
+Image 67/202
+Image: data/CheXpert/val/patient64605/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0010322310263291001
+
+Image 68/202
+Image: data/CheXpert/val/patient64606/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.000552778597921133
+
+Image 69/202
+Image: data/CheXpert/val/patient64607/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.11920291930437088
+
+Image 70/202
+Image: data/CheXpert/val/patient64608/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a small pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9978172779083252
+
+Image 71/202
+Image: data/CheXpert/val/patient64609/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be pleural effusion present in the lower portions of both lung
+Parsed prediction: 1
+Yes-vs-No score: 0.9999946355819702
+
+Image 72/202
+Image: data/CheXpert/val/patient64610/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9994471669197083
+
+Image 73/202
+Image: data/CheXpert/val/patient64611/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.01243165135383606
+
+Image 74/202
+Image: data/CheXpert/val/patient64612/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the right hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999339580535889
+
+Image 75/202
+Image: data/CheXpert/val/patient64613/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Based on the chest X-ray, there is a blunting of the right
+Parsed prediction: None
+Yes-vs-No score: 0.8933094143867493
+
+Image 76/202
+Image: data/CheXpert/val/patient64614/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.014063626527786255
+
+Image 77/202
+Image: data/CheXpert/val/patient64615/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 78/202
+Image: data/CheXpert/val/patient64616/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.020332353189587593
+
+Image 79/202
+Image: data/CheXpert/val/patient64617/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 80/202
+Image: data/CheXpert/val/patient64618/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.000626334163825959
+
+Image 81/202
+Image: data/CheXpert/val/patient64619/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a small pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9902915358543396
+
+Image 82/202
+Image: data/CheXpert/val/patient64620/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there is a pleural effusion present in the left hemithorax.
+Parsed prediction: 1
+Yes-vs-No score: 0.9999991655349731
+
+Image 83/202
+Image: data/CheXpert/val/patient64621/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.004609572701156139
+
+Image 84/202
+Image: data/CheXpert/val/patient64622/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be some degree of pleural effusion present in the lower lung
+Parsed prediction: 1
+Yes-vs-No score: 0.9947799444198608
+
+Image 85/202
+Image: data/CheXpert/val/patient64623/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is bl
+Parsed prediction: 1
+Yes-vs-No score: 0.9999995231628418
+
+Image 86/202
+Image: data/CheXpert/val/patient64624/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion on the left side. The left
+Parsed prediction: 1
+Yes-vs-No score: 0.9999984502792358
+
+Image 87/202
+Image: data/CheXpert/val/patient64625/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0010322310263291001
+
+Image 88/202
+Image: data/CheXpert/val/patient64626/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 89/202
+Image: data/CheXpert/val/patient64627/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.000626334163825959
+
+Image 90/202
+Image: data/CheXpert/val/patient64628/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0019267346942797303
+
+Image 91/202
+Image: data/CheXpert/val/patient64629/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0024726232513785362
+
+Image 92/202
+Image: data/CheXpert/val/patient64630/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the left side. The left
+Parsed prediction: 1
+Yes-vs-No score: 0.999995231628418
+
+Image 93/202
+Image: data/CheXpert/val/patient64631/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.06754669547080994
+
+Image 94/202
+Image: data/CheXpert/val/patient64632/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.07585817575454712
+
+Image 95/202
+Image: data/CheXpert/val/patient64633/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is bl
+Parsed prediction: 1
+Yes-vs-No score: 0.9999992847442627
+
+Image 96/202
+Image: data/CheXpert/val/patient64634/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a significant pleural effusion in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999958276748657
+
+Image 97/202
+Image: data/CheXpert/val/patient64635/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a small pleural effusion on the right side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9989677667617798
+
+Image 98/202
+Image: data/CheXpert/val/patient64636/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a small pleural effusion on the right side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9997040629386902
+
+Image 99/202
+Image: data/CheXpert/val/patient64637/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion on the left side. The left
+Parsed prediction: 1
+Yes-vs-No score: 0.9241418242454529
+
+Image 100/202
+Image: data/CheXpert/val/patient64638/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.0011695101857185364
+
+Image 101/202
+Image: data/CheXpert/val/patient64639/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there is a significant pleural effusion present in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999995231628418
+
+Image 102/202
+Image: data/CheXpert/val/patient64640/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999946355819702
+
+Image 103/202
+Image: data/CheXpert/val/patient64641/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be pleural effusion present in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999984502792358
+
+Image 104/202
+Image: data/CheXpert/val/patient64642/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.0534033328294754
+
+Image 105/202
+Image: data/CheXpert/val/patient64643/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is a
+Parsed prediction: 1
+Yes-vs-No score: 0.9999979734420776
+
+Image 106/202
+Image: data/CheXpert/val/patient64644/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999984502792358
+
+Image 107/202
+Image: data/CheXpert/val/patient64645/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9999982118606567
+
+Image 108/202
+Image: data/CheXpert/val/patient64646/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a small pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9940890073776245
+
+Image 109/202
+Image: data/CheXpert/val/patient64647/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0004305570910219103
+
+Image 110/202
+Image: data/CheXpert/val/patient64648/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.13296423852443695
+
+Image 111/202
+Image: data/CheXpert/val/patient64649/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there is a pleural effusion present in the right hemithorax.
+Parsed prediction: 1
+Yes-vs-No score: 0.9999985694885254
+
+Image 112/202
+Image: data/CheXpert/val/patient64650/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be pleural effusion present in the right hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999974966049194
+
+Image 113/202
+Image: data/CheXpert/val/patient64651/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.03308597952127457
+
+Image 114/202
+Image: data/CheXpert/val/patient64652/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a significant pleural effusion in the right hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999687671661377
+
+Image 115/202
+Image: data/CheXpert/val/patient64653/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion in the right hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9669140577316284
+
+Image 116/202
+Image: data/CheXpert/val/patient64654/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.06008664518594742
+
+Image 117/202
+Image: data/CheXpert/val/patient64655/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999988079071045
+
+Image 118/202
+Image: data/CheXpert/val/patient64656/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be pleural effusion present in the lower lung fields, particularly
+Parsed prediction: 1
+Yes-vs-No score: 0.9947799444198608
+
+Image 119/202
+Image: data/CheXpert/val/patient64657/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. The presence of
+Parsed prediction: 1
+Yes-vs-No score: 0.9999996423721313
+
+Image 120/202
+Image: data/CheXpert/val/patient64658/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of a
+Parsed prediction: None
+Yes-vs-No score: 0.14804719388484955
+
+Image 121/202
+Image: data/CheXpert/val/patient64659/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There appears to
+Parsed prediction: 1
+Yes-vs-No score: 0.9999990463256836
+
+Image 122/202
+Image: data/CheXpert/val/patient64660/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999946355819702
+
+Image 123/202
+Image: data/CheXpert/val/patient64661/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is a **Yes** pleural effusion
+Parsed prediction: None
+Yes-vs-No score: 0.9796676635742188
+
+Image 124/202
+Image: data/CheXpert/val/patient64662/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001325022429227829
+
+Image 125/202
+Image: data/CheXpert/val/patient64663/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9964063763618469
+
+Image 126/202
+Image: data/CheXpert/val/patient64664/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be pleural effusion present in the right hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9914224743843079
+
+Image 127/202
+Image: data/CheXpert/val/patient64665/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a small pleural effusion in the left lower lung field
+Parsed prediction: 1
+Yes-vs-No score: 0.9999485015869141
+
+Image 128/202
+Image: data/CheXpert/val/patient64666/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion in the left lower lung field.
+Parsed prediction: 1
+Yes-vs-No score: 0.9997040629386902
+
+Image 129/202
+Image: data/CheXpert/val/patient64667/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the right side of the chest
+Parsed prediction: 1
+Yes-vs-No score: 0.9998766183853149
+
+Image 130/202
+Image: data/CheXpert/val/patient64668/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999785423278809
+
+Image 131/202
+Image: data/CheXpert/val/patient64669/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be pleural effusion present in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999910593032837
+
+Image 132/202
+Image: data/CheXpert/val/patient64670/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999485015869141
+
+Image 133/202
+Image: data/CheXpert/val/patient64671/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.022977370768785477
+
+Image 134/202
+Image: data/CheXpert/val/patient64672/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is a small amount of pleural effusion
+Parsed prediction: None
+Yes-vs-No score: 0.957912266254425
+
+Image 135/202
+Image: data/CheXpert/val/patient64673/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9999898672103882
+
+Image 136/202
+Image: data/CheXpert/val/patient64674/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.999987006187439
+
+Image 137/202
+Image: data/CheXpert/val/patient64675/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9997040629386902
+
+Image 138/202
+Image: data/CheXpert/val/patient64676/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Based on the chest X-ray provided, there is a possible pleural effusion in
+Parsed prediction: None
+Yes-vs-No score: 0.5926666259765625
+
+Image 139/202
+Image: data/CheXpert/val/patient64677/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a small pleural effusion in the right lower lung field
+Parsed prediction: 1
+Yes-vs-No score: 0.9902915358543396
+
+Image 140/202
+Image: data/CheXpert/val/patient64678/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999988079071045
+
+Image 141/202
+Image: data/CheXpert/val/patient64679/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999885559082031
+
+Image 142/202
+Image: data/CheXpert/val/patient64680/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.005220125894993544
+
+Image 143/202
+Image: data/CheXpert/val/patient64681/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is bl
+Parsed prediction: 1
+Yes-vs-No score: 0.9999991655349731
+
+Image 144/202
+Image: data/CheXpert/val/patient64682/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9971990585327148
+
+Image 145/202
+Image: data/CheXpert/val/patient64683/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is a
+Parsed prediction: 1
+Yes-vs-No score: 0.9999995231628418
+
+Image 146/202
+Image: data/CheXpert/val/patient64684/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999966621398926
+
+Image 147/202
+Image: data/CheXpert/val/patient64685/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 148/202
+Image: data/CheXpert/val/patient64686/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion on the left side. The left
+Parsed prediction: 1
+Yes-vs-No score: 0.9999417066574097
+
+Image 149/202
+Image: data/CheXpert/val/patient64687/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a small pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9998910427093506
+
+Image 150/202
+Image: data/CheXpert/val/patient64688/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. The right hem
+Parsed prediction: 1
+Yes-vs-No score: 0.9999994039535522
+
+Image 151/202
+Image: data/CheXpert/val/patient64689/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a significant pleural effusion in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999974966049194
+
+Image 152/202
+Image: data/CheXpert/val/patient64690/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be pleural effusion present in the right hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999946355819702
+
+Image 153/202
+Image: data/CheXpert/val/patient64691/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999485015869141
+
+Image 154/202
+Image: data/CheXpert/val/patient64692/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. The right hem
+Parsed prediction: 1
+Yes-vs-No score: 0.9999995231628418
+
+Image 155/202
+Image: data/CheXpert/val/patient64693/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999910593032837
+
+Image 156/202
+Image: data/CheXpert/val/patient64694/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes. There appears to be a pleural effusion on the right side.
+Parsed prediction: 1
+Yes-vs-No score: 0.999841570854187
+
+Image 157/202
+Image: data/CheXpert/val/patient64695/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001325022429227829
+
+Image 158/202
+Image: data/CheXpert/val/patient64696/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.14804719388484955
+
+Image 159/202
+Image: data/CheXpert/val/patient64697/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be some degree of pleural effusion present in the lower lung
+Parsed prediction: 1
+Yes-vs-No score: 0.9986749291419983
+
+Image 160/202
+Image: data/CheXpert/val/patient64698/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.06008664518594742
+
+Image 161/202
+Image: data/CheXpert/val/patient64699/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.01098694372922182
+
+Image 162/202
+Image: data/CheXpert/val/patient64700/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.01590639166533947
+
+Image 163/202
+Image: data/CheXpert/val/patient64701/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.0028009270317852497
+
+Image 164/202
+Image: data/CheXpert/val/patient64702/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999938011169434
+
+Image 165/202
+Image: data/CheXpert/val/patient64703/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be pleural effusion present in the lower lung fields, particularly
+Parsed prediction: 1
+Yes-vs-No score: 0.9999645948410034
+
+Image 166/202
+Image: data/CheXpert/val/patient64704/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is bl
+Parsed prediction: 1
+Yes-vs-No score: 0.9999984502792358
+
+Image 167/202
+Image: data/CheXpert/val/patient64705/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.004609572701156139
+
+Image 168/202
+Image: data/CheXpert/val/patient64706/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.3486451506614685
+
+Image 169/202
+Image: data/CheXpert/val/patient64707/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.001700722612440586
+
+Image 170/202
+Image: data/CheXpert/val/patient64708/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.0534033328294754
+
+Image 171/202
+Image: data/CheXpert/val/patient64709/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0009110512328334153
+
+Image 172/202
+Image: data/CheXpert/val/patient64710/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0019267346942797303
+
+Image 173/202
+Image: data/CheXpert/val/patient64711/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999988079071045
+
+Image 174/202
+Image: data/CheXpert/val/patient64712/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.01098694372922182
+
+Image 175/202
+Image: data/CheXpert/val/patient64713/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0028009270317852497
+
+Image 176/202
+Image: data/CheXpert/val/patient64714/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no clear evidence of significant pleural
+Parsed prediction: None
+Yes-vs-No score: 0.18242551386356354
+
+Image 177/202
+Image: data/CheXpert/val/patient64715/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, pleural effusion is present in this chest X-ray. There is bl
+Parsed prediction: 1
+Yes-vs-No score: 0.9999994039535522
+
+Image 178/202
+Image: data/CheXpert/val/patient64716/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0031726830638945103
+
+Image 179/202
+Image: data/CheXpert/val/patient64717/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there is a pleural effusion present in the left hemithorax.
+Parsed prediction: 1
+Yes-vs-No score: 0.999995231628418
+
+Image 180/202
+Image: data/CheXpert/val/patient64718/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.008577484637498856
+
+Image 181/202
+Image: data/CheXpert/val/patient64719/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no obvious pleural effusion. The
+Parsed prediction: 0
+Yes-vs-No score: 0.0028009270317852497
+
+Image 182/202
+Image: data/CheXpert/val/patient64720/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9999946355819702
+
+Image 183/202
+Image: data/CheXpert/val/patient64721/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0015011822106316686
+
+Image 184/202
+Image: data/CheXpert/val/patient64722/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion in the left hemithorax
+Parsed prediction: 1
+Yes-vs-No score: 0.9999985694885254
+
+Image 185/202
+Image: data/CheXpert/val/patient64723/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.0008040859247557819
+
+Image 186/202
+Image: data/CheXpert/val/patient64724/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 187/202
+Image: data/CheXpert/val/patient64725/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a small pleural effusion on the left side.
+Parsed prediction: 1
+Yes-vs-No score: 0.9996199607849121
+
+Image 188/202
+Image: data/CheXpert/val/patient64726/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of pleural
+Parsed prediction: None
+Yes-vs-No score: 0.01798621006309986
+
+Image 189/202
+Image: data/CheXpert/val/patient64727/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0007096704212017357
+
+Image 190/202
+Image: data/CheXpert/val/patient64728/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Yes, there appears to be a significant pleural effusion in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9995121955871582
+
+Image 191/202
+Image: data/CheXpert/val/patient64729/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is some evidence of pleural effusion,
+Parsed prediction: None
+Yes-vs-No score: 0.957912266254425
+
+Image 192/202
+Image: data/CheXpert/val/patient64730/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0008040859247557819
+
+Image 193/202
+Image: data/CheXpert/val/patient64731/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0010322310263291001
+
+Image 194/202
+Image: data/CheXpert/val/patient64732/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0019267346942797303
+
+Image 195/202
+Image: data/CheXpert/val/patient64733/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0019267346942797303
+
+Image 196/202
+Image: data/CheXpert/val/patient64734/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is no clear evidence of significant
+Parsed prediction: None
+Yes-vs-No score: 0.622459352016449
+
+Image 197/202
+Image: data/CheXpert/val/patient64735/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray provided, there is a possible pleural effusion in
+Parsed prediction: None
+Yes-vs-No score: 0.851952850818634
+
+Image 198/202
+Image: data/CheXpert/val/patient64736/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is no clear evidence of pleural effusion
+Parsed prediction: None
+Yes-vs-No score: 0.04742587357759476
+
+Image 199/202
+Image: data/CheXpert/val/patient64737/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the chest X-ray, there is a possible pleural effusion on the
+Parsed prediction: None
+Yes-vs-No score: 0.5926666259765625
+
+Image 200/202
+Image: data/CheXpert/val/patient64738/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0011695101857185364
+
+Image 201/202
+Image: data/CheXpert/val/patient64739/study1/view1_frontal.jpg
+Ground truth: 0
+MedGemma response: Based on the provided chest X-ray, there is no obvious pleural effusion.
+Parsed prediction: 0
+Yes-vs-No score: 0.0008040859247557819
+
+Image 202/202
+Image: data/CheXpert/val/patient64740/study1/view1_frontal.jpg
+Ground truth: 1
+MedGemma response: Yes, there appears to be a pleural effusion present in the left hemithor
+Parsed prediction: 1
+Yes-vs-No score: 0.9997965693473816
+
+Classification Metrics
+----------------------------------------
+total_images: 202
+parsed_images: 171
+unparsed_images: 31
+roc_auc: 0.931442
+average_precision: 0.865113
+accuracy: 0.824561
+precision: 0.682353
+recall: 0.950820
+sensitivity: 0.950820
+specificity: 0.754545
+tpr: 0.950820
+fpr: 0.245455
+f1: 0.794521
+tp: 58
+tn: 83
+fp: 27
+fn: 3
+
+Predictions saved to: results/classification/predictions.csv
+Metrics saved to: results/classification/metrics.txt
+Plots saved to: results/classification/plots
