@@ -146,6 +146,15 @@ def run_app():
     directory = Path(st.sidebar.text_input("Saved feature directory", str(default))).expanduser()
     interventions = st.sidebar.text_input("Optional intervention results directory", "")
     if interventions:
+        selected = Path(interventions).expanduser()
+        if (selected / "protocol.json").exists() and read_viewer_experiment(selected) == "E-009":
+            from medgemma_grounding.attention_analysis import viewer
+            try:
+                viewer(selected)
+                attention_case_images(selected)
+            except (OSError, ValueError, KeyError, RuntimeError) as error:
+                st.error(f"Could not open attention experiment: {error}")
+            return
         run_intervention_viewer(Path(interventions).expanduser(), directory)
         if not st.sidebar.checkbox("Also show original SDPA discovery reference", value=False):
             return
@@ -564,6 +573,48 @@ def run_intervention_viewer(directory, source):
         st.caption("Contextual decoder-position attribution; it does not establish pixel-level causality or anatomical localization. Expert-mask display restrictions remain in the discovery section.")
     except (OSError, ValueError, KeyError, RuntimeError) as error:
         st.error(f"Cannot open intervention results: {error}")
+
+
+def read_viewer_experiment(directory):
+    import json
+    return json.loads((directory / "protocol.json").read_text()).get("experiment")
+
+
+def attention_case_images(directory):
+    """Original discovery X-rays, never a spatial overlay inferred from depth."""
+    import streamlit as st
+    from medgemma_grounding.medgemma_interventions import read_json
+    from medgemma_grounding.chexlocalize import expert_mask
+    manifest = read_json(directory / "discovery_manifest.json")
+    with st.expander("Inspect original discovery X-rays and valid expert outlines"):
+        case_id = st.selectbox("X-ray discovery case", [c["case_id"] for c in manifest["cases"]])
+        case = next(c for c in manifest["cases"] if c["case_id"] == case_id)
+        root = Path(st.text_input("Local data root for original images", "data")).expanduser()
+        path = root / case["relative_image"]
+        if not path.exists():
+            st.warning("Original discovery image unavailable at this data root. No placeholder image is substituted.")
+            return
+        if file_sha256(path) != case["image_sha256"]:
+            raise ValueError("Discovery X-ray checksum changed")
+        with Image.open(path) as raw:
+            image = raw.convert("RGB")
+        st.write({"case_id": case_id, "patient": case["patient"], "expert_label": case["label"],
+                  "historical_outcome": case["historical_outcome"], "historical_answer_score": case["historical_answer_score"]})
+        displays = [("Original X-ray (no depth overlay)", image)]
+        annotation = root / "CheXlocalize" / "gt_annotations_val.json"
+        segmentation = root / "CheXlocalize" / "gt_segmentations_val.json"
+        if annotation.exists() and segmentation.exists():
+            status, mask, detail = expert_mask(case, read_json(annotation), read_json(segmentation))
+            if status == "invalid/mismatched":
+                st.warning("Mismatched expert annotation: outline disabled.")
+            elif mask is not None:
+                displays.append(("Expert outline, independent of knockout effects", mask_display(image, mask)))
+            st.caption(f"Mask status: {status}; {detail}. Missing masks do not label a case negative.")
+        else:
+            st.caption("Expert annotation files unavailable; no outline substituted.")
+        for column, (caption, displayed) in zip(st.columns(len(displays)), displays):
+            column.image(displayed, caption=caption)
+        st.caption("Depth-profile sensitivity is not anatomical localization or a causal pixel-region map.")
 
 
 def run_targeted_viewer(directory):

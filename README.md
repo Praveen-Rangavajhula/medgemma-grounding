@@ -268,6 +268,26 @@ Stages are resumable with fixed provenance; failures stop dependent model work.
 Discovery-selected results do not establish anatomical meaning, generalization
 or a correction policy. Confirmation and test patients remain reserved.
 
+### Decoder-depth image-to-answer knockout
+
+```bash
+uv run python -m medgemma_grounding.medgemma_attention --stage benchmark
+uv run python -m medgemma_grounding.medgemma_attention --stage run
+uv run python -m medgemma_grounding.medgemma_attention --stage report
+```
+
+The fixed study blocks image-key reads by the final input query (A) or all
+post-image non-image queries (B), across eight overlapping windows and full depth.
+It uses all 142 discovery images; gray-image diagnostics are not text-only runs
+or clinically negative images. Results: `results/attention_depth_v1/`.
+Set the viewer's **Optional intervention results directory** to that path for
+route profiles, patient heatmaps, cases, gray diagnostics and numerical checks.
+The benchmark gates full execution; different hardware/backend requires a new
+output directory and baselines. `--data-root` relocates original discovery images.
+Reports regenerate without model loading. Sensitivity is not a circuit,
+anatomical localization or evidence of effusion-specific processing. Confirmation
+and test patients remain reserved.
+
 ### Existing 20-case cache
 
 Run both commands from the repository root. Extraction saves
