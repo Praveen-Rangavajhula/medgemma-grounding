@@ -1,0 +1,5 @@
+# Additional dependencies for the inherited Part 1 benchmark and Part 2 audit.
+# Install after the project's base environment; keep Part 1 requirements intact.
+matplotlib==3.11.2
+pandas==3.1.0
+scikit-learn==1.9.1
