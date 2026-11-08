@@ -1,0 +1,10 @@
+{
+  "case_id": "patient64545_study1_view1_frontal",
+  "chest_box_normalized_xyxy": [0.23, 0.18, 0.83, 0.82],
+  "control_offsets_normalized_xy": [[-0.3, 0.0], [-0.3, -0.175], [-0.05, -0.225]],
+  "control_selection": "Case-specific translations selected from the original image and annotation before any occlusion scores. Coarse chest window, not a lung mask. Review prepared overlays before inference.",
+  "grid": 8,
+  "blur_sigma_model_pixels": 16.0,
+  "fills": ["mean", "blur"],
+  "purpose": "One discovery-case implementation pilot; settings are not yet frozen for confirmation."
+}

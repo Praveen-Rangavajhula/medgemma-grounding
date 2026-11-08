@@ -198,13 +198,22 @@ to resize it to 896 by 896. Section 2.3 must align masks/perturbations with thes
 recorded transformations. Baseline classification and numerical agreement do
 not establish that the model used the radiologist-marked region.
 
+## 2.3: masking and occlusion pilot
+
+The [masking pilot guide](occlusion-pilot.md) documents native-resolution
+radiologist masks, three shape/area-matched controls, mean and blur fills,
+processor-space visual QA, and an annotation-independent 8-by-8 patch sweep.
+The new modules reuse Part 1 inference and checkpoint every completed condition.
+Settings are developed on discovery; a successful one-case pilot does not
+complete cohort evaluation or freeze settings for confirmation.
+
 ## Incremental implementation order
 
 | Section | Deliverable | Current state |
 | --- | --- | --- |
 | 2.1 | Fixed cohort rules, inherited prompt/scoring contract, patient partitions | Preparation command implemented |
 | 2.2 | Reconciled Part 1 results and one reproduced real-model baseline | Audit of 202 predictions and one-case Mac pilot passed |
-| 2.3 | Original, effusion-region occluded, and matched control-region occluded images; score changes and patch maps | Pending |
+| 2.3 | Original, effusion-region occluded, and matched control-region occluded images; score changes and patch maps | One-case pilot completed: 139 scored conditions; broader discovery/confirmation evaluation pending |
 | 2.4 | Activations from the same layers/token positions for those conditions, with full metadata | Pending |
 | 2.5 | Layerwise distances/similarities, plots, and candidate layers | Pending |
 | 2.6 | Recurrent SAE feature observations where transfer fidelity is adequate, or a documented negative result | Pending |
