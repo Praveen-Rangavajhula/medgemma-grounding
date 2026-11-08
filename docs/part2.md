@@ -207,6 +207,23 @@ The new modules reuse Part 1 inference and checkpoint every completed condition.
 Settings are developed on discovery; a successful one-case pilot does not
 complete cohort evaluation or freeze settings for confirmation.
 
+## 2.4–2.5: activation collection and layer comparisons
+
+The [activation pilot guide](activation-pilot.md) documents passive captures of
+all 34 decoder residual outputs, with every prefill token retained, for the
+original image, eight region conditions and two sanity checks. The completed
+one-case run saved 11 arrays of shape `[34, 284, 2560]`. Recording hooks changed
+no output logits; no-op and end-repeat activations matched exactly.
+
+Layer comparisons report relative L2, raw L2/RMSE, and aligned-token cosine
+similarity for the final pre-answer position, image tokens and prompt text.
+For this discovery case, layers 3 and 14 (zero-based) have positive target-minus-
+mean-control relative L2 at the final pre-answer position under both fills.
+These are exploratory candidates; later-layer contrasts depend strongly on
+the fill. The one-case result does not establish causal importance or complete
+cohort-level evaluation. Outputs are under `outputs/part2/activations-v1/` and
+`outputs/part2/layers-v1/`; see the guide for commands and exact definitions.
+
 ## Incremental implementation order
 
 | Section | Deliverable | Current state |
@@ -214,8 +231,8 @@ complete cohort evaluation or freeze settings for confirmation.
 | 2.1 | Fixed cohort rules, inherited prompt/scoring contract, patient partitions | Preparation command implemented |
 | 2.2 | Reconciled Part 1 results and one reproduced real-model baseline | Audit of 202 predictions and one-case Mac pilot passed |
 | 2.3 | Original, effusion-region occluded, and matched control-region occluded images; score changes and patch maps | One-case pilot completed: 139 scored conditions; broader discovery/confirmation evaluation pending |
-| 2.4 | Activations from the same layers/token positions for those conditions, with full metadata | Pending |
-| 2.5 | Layerwise distances/similarities, plots, and candidate layers | Pending |
+| 2.4 | Activations from the same layers/token positions for those conditions, with full metadata | One-case pilot completed: 11 conditions, all 34 decoder layers, exact passive-hook/no-op/repeat checks |
+| 2.5 | Layerwise distances/similarities, plots, and candidate layers | One-case pilot completed: 816 region/group/layer comparisons, three figures, exploratory candidates; broader validation pending |
 | 2.6 | Recurrent SAE feature observations where transfer fidelity is adequate, or a documented negative result | Pending |
 
 For 2.3, explicitly match control-region area and filling method on the same
