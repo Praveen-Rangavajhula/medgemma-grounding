@@ -312,6 +312,24 @@ maps**. Only input/prefill activations are captured; the displayed generated
 answer is context. The 20 cases develop the workflow, not confirm medical
 feature meanings; broader discovery and separate confirmation patients come later.
 
+For the discovery-only individual-layer routing study and error/score controls:
+
+These commands require the completed local E-009 artifacts and the reviewed
+E-010 protocol/methods under the output directory; results are Git-ignored.
+
+```bash
+uv run python -m medgemma_grounding.medgemma_routing --stage existing
+uv run python -m medgemma_grounding.medgemma_routing --stage run
+uv run python -m medgemma_grounding.medgemma_routing --stage report
+uv run python -m medgemma_grounding.medgemma_routing --stage verify
+```
+
+Outputs: `results/attention_errors_v3/`. Select this directory in the viewer's
+optional intervention-results field for layer contrasts, score controls and
+threshold tradeoffs. `run` benchmarks and verifies numerical controls first;
+completed resume/report/verify do not load model weights. These exploratory
+discovery comparisons do not establish a disease circuit or correction policy.
+
 The gallery, ranking and overlay code adapts Imageomics'
 [`saev-demo` feature viewer](https://github.com/Imageomics/saev-demo/blob/5fa496c9f8b63f503b1c8d9b0b9ef25dcd81b09e/demo/feature_vis.py),
 replacing its DINOv2/SAE inference path with saved MedGemma activations.

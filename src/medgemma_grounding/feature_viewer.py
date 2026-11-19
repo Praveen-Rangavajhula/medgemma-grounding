@@ -147,6 +147,14 @@ def run_app():
     interventions = st.sidebar.text_input("Optional intervention results directory", "")
     if interventions:
         selected = Path(interventions).expanduser()
+        if (selected / "protocol.json").exists() and read_viewer_experiment(selected) == "E-010":
+            from medgemma_grounding.routing_analysis import viewer
+            try:
+                viewer(selected)
+                attention_case_images(selected)
+            except (ValueError, KeyError, OSError) as error:
+                st.error(f"Could not open routing experiment: {error}")
+            return
         if (selected / "protocol.json").exists() and read_viewer_experiment(selected) == "E-009":
             from medgemma_grounding.attention_analysis import viewer
             try:
