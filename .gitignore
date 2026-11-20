@@ -31,7 +31,7 @@ dist/
 .vscode/
 
 # Data and large artifacts
-data/
+/data/
 results/
 outputs/
 checkpoints/

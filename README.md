@@ -1,336 +1,120 @@
 # medgemma-grounding
 
-Minimal Python research scaffold for mechanistic interpretability experiments on visual grounding in MedGemma 1.5.
+Research on visual grounding and mechanistic interpretability in **MedGemma 1.5**,
+using CheXlocalize X-rays, transferred Gemma Scope 2 SAEs and controlled attention
+interventions. Gemma 3 is a reference control.
 
-## Stack
+## Setup
 
-- Python 3.11
-- [uv](https://docs.astral.sh/uv/) for dependency and environment management
-- `src/` package layout
-
-## Quick start
+Python 3.11 and [uv](https://docs.astral.sh/uv/) are required. Run commands from
+the repository root.
 
 ```bash
-uv python install 3.11
 uv sync --dev
 uv run pytest
 ```
 
-## Alternative environments
+Accept the relevant Hugging Face model terms and configure a read token using
+`example.env` before inference. Saved-result browsing does not need weights or a
+token. For other Python environments, install `requirements.txt`.
 
-For `pip`, a standard virtual environment, or Conda, install the same runtime
-dependencies listed in `pyproject.toml` with the single `requirements.txt`:
-
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-For Conda:
-
-```bash
-conda create -n medgemma-grounding python=3.11
-conda activate medgemma-grounding
-python -m pip install -r requirements.txt
-```
-
-When changing runtime dependencies, update `pyproject.toml` and
-`requirements.txt` together, then run `uv lock`.
-
-## Project layout
-
-```text
-.
-├── pyproject.toml
-├── src/medgemma_grounding/
-└── tests/
-```
-
-The repository contains small, reproducible experiments rather than a full analysis pipeline.
-
-## CheXlocalize: inspect one localized case
-
-The next experiment uses the official CheXlocalize release, which contains
-CheXpert images and labels plus radiologist-drawn pathology contours. The data
-is deliberately stored under `data/`, which is ignored by Git.
-
-Follow the official project's step-by-step
-[CheXlocalize download instructions](https://github.com/rajpurkarlab/cheXlocalize/blob/master/download_instructions.md).
-Preserve its native layout:
+Follow the [official CheXlocalize download instructions](https://github.com/rajpurkarlab/cheXlocalize/blob/master/download_instructions.md)
+and retain the original layout:
 
 ```text
 data/
-├── CheXpert/
-│   ├── val/
-│   ├── val_labels.csv
-│   ├── test/
-│   └── test_labels.csv
-└── CheXlocalize/
-    ├── gt_annotations_val.json
-    └── gt_annotations_test.json
+├── CheXpert/{val/, val_labels.csv, test/, test_labels.csv}
+└── CheXlocalize/{gt_annotations_val.json, gt_annotations_test.json}
 ```
 
-With the validation files in place, this command loads one positive pleural
-effusion case, opens its image, and prints its expert label and raw contour:
+## Code layout
+
+```text
+src/medgemma_grounding/
+├── model.py          # model loading, input preparation and answer scoring
+├── data/             # cases, labels, patient splits and image-position mapping
+├── sae/              # checkpoints, reconstruction and CPU feature caches
+├── interventions/    # feature edits, attention restrictions and execution helpers
+├── experiments/      # runnable study stages and historical offline replay
+├── analysis/         # patient-level statistics and saved-result reports
+├── visualization/    # Streamlit application, overlays and study panels
+└── utils/            # I/O, numerical diagnostics and source provenance
+tests/                # corresponding data, SAE, intervention and study checks
+```
+
+The [migration guide](MIGRATION.md) maps previous modules and commands, explains
+historical source snapshots, and records the upstream organizational references.
+
+## Inspect saved results
 
 ```bash
-uv run python -m medgemma_grounding.chexlocalize
+uv run streamlit run src/medgemma_grounding/visualization/app.py
 ```
 
-`find_positive_case()` is the case-level loader intended for the next step;
-it returns the image path, known label, image dimensions, and expert contours
-without performing inference or looping over the dataset.
+The viewer opens the discovery feature cache when available. Use **Optional
+intervention results directory** to inspect a completed study:
 
-## Gemma Scope 2 on MedGemma
+| Directory | Contents |
+| --- | --- |
+| `results/gemma_scope/discovery_v1` | feature associations, shortlist, examples and expert-mask audit |
+| `results/gemma_scope/interventions_v3_discovery` | calibrated feature attribution and direct removals |
+| `results/gemma_scope/targeted_discovery_v1` | candidate effects and executed-size controls |
+| `results/attention_depth_v1` | attention-route window knockouts |
+| `results/attention_errors_v3` | individual layers, correct/error contrasts and score controls |
 
-To check whether the Gemma Scope 2 SAE transfers to MedGemma 1.5, run one
-image and then the fixed 20-image CheXpert validation pilot:
+Regenerate or verify the existing attention reports without loading weights:
 
 ```bash
-uv run python -m medgemma_grounding.medgemma_scope
-uv run python -m medgemma_grounding.medgemma_scope --pilot
+uv run python -m medgemma_grounding.experiments.run_attention_windows --stage report
+uv run python -m medgemma_grounding.experiments.run_attention_layers --stage report
+uv run python -m medgemma_grounding.experiments.run_attention_layers --stage verify
 ```
 
-The JSON results are saved under `results/gemma_scope/`. The earlier
-`gemma_scope` command and `gemma3_reconstruction.json` remain the Gemma 3
-control; SAE reconstruction alone does not establish feature meaning.
+Historical attention commands automatically use the verified pre-refactor
+runtime. Completed `--stage run` checks remain model-free; incomplete historical
+execution is refused. Keep `results/maintenance/layout_20261120/` with the saved
+results when transferring this workspace. These ignored artifacts are not
+included in a fresh clone.
 
-For the 34-layer MedGemma transfer screen, run
-`uv run python -m medgemma_grounding.medgemma_scope_layers`. It saves a resumable
-FVU, L0, and next-token KL profile to `results/gemma_scope/medgemma_layer_profile.json`.
-FVU and L0 exclude special tokens; KL measures the next-token distribution after
-reconstructing every input position, including special tokens.
+## Experiment entry points
 
-## Layer-14 feature viewer
+Use `uv run python -m medgemma_grounding.experiments.<module> --help` for options.
+Model execution is explicit; importing a module never starts an experiment.
 
-Capture the exact 20 pilot cases with the layer-14 16k `l0_big` SAE, then
-browse the saved features locally:
+| Module | Purpose / output |
+| --- | --- |
+| `inspect_data` | inspect a case or freeze the validation patient split |
+| `run_inference` | one-image MedGemma inference |
+| `run_gemma_control` | Gemma 3 SAE reference check |
+| `run_sae_transfer` | single-image or fixed 20-case transfer pilot |
+| `run_sae_layers` | layerwise FVU, L0 and next-token KL profile |
+| `compute_sae_activations` | pilot or discovery CPU feature cache |
+| `diagnose_attention` | bounded two-case numerical diagnosis |
+| `run_feature_pilot` | historical E-005 calibration workflow |
+| `run_feature_discovery` | fresh eager-text / SDPA-vision discovery attribution |
+| `run_targeted_features` | candidate removals and matched-size directions |
+| `run_attention_windows` | image-to-text routing windows |
+| `run_attention_layers` | individual routing layers and score controls |
 
-```bash
-uv run python -m medgemma_grounding.medgemma_features
-uv run streamlit run src/medgemma_grounding/feature_viewer.py
-```
+Reports and measurements live under ignored `results/`; original images and
+Hugging Face cache locations stay unchanged. Staged studies save protocols,
+per-case records, summaries and figures. Resume requires identical cohort,
+runtime, settings and source identity. **Use a new output directory for execution
+with the reorganized implementation**; do not reuse a historical protocol.
+Attention studies additionally require reviewed methods and their source artifacts
+before preparation. No new model run is part of this code migration.
 
-### Discovery cohort (validation only)
+## Interpretation limits
 
-Build the fixed patient split, then extract **discovery only** into a new
-experiment directory. The first command audits 202 eligible images / 200
-patients, includes all 20 pilot patients in discovery, and reserves 60 patients
-for confirmation. Original images stay in place; test data is not used.
+The 20 cases are a workflow pilot. Discovery uses 142 validation images / 140
+patients; 60 confirmation patients and all test data remain reserved. Missing
+contours do not imply a negative label, and no effusion does not imply a normal
+X-ray. Decoder-position overlays are contextual feature activity, not anatomical
+localization or causal pixel attribution. The Yes/No logit difference is not a
+calibrated clinical probability. Reconstruction, association, causal influence
+and improved classification are separate claims.
 
-```bash
-uv run python -m medgemma_grounding.chexlocalize \
-  --cohort-output results/gemma_scope/discovery_v1/cohort.json
-uv run python -m medgemma_grounding.medgemma_features \
-  --cohort-manifest results/gemma_scope/discovery_v1/cohort.json \
-  --output-dir results/gemma_scope/discovery_v1 --limit 2
-```
-
-Inspect the smoke records and runtime estimate before continuing. Resume with
-the same extraction command **without `--limit 2`**; completed cases are validated
-and skipped. Changed inputs, extraction sources, revisions, or settings are
-rejected. The schema-1 pilot cache is never overwritten.
-
-After extraction, compute patient-level discovery statistics without inference:
-
-```bash
-uv run python -m medgemma_grounding.feature_analysis \
-  --experiment-dir results/gemma_scope/discovery_v1
-uv run streamlit run src/medgemma_grounding/feature_viewer.py
-```
-
-The viewer defaults to `results/gemma_scope/discovery_v1` when its report exists;
-otherwise set **Saved feature directory** in the sidebar to that path. It displays four ranked association tables,
-the frozen shortlist, score/activation plots, counterexamples, expert-mask
-outlines, token values, and reconstruction distortion. Full token features are
-loaded only for the selected case; browsing does not load MedGemma or an SAE.
-
-Artifacts include `protocol.json`, `cohort.json`, per-case JSON/sparse tensors
-under `cases/`, `rankings.csv`, `shortlist.json`, `discovery_report.json`,
-`mask_audit.json`, and `mask_alignment.png`. Yes/No tokenization is verified at
-the actual generation boundary. The score is a next-token logit difference,
-not a calibrated clinical probability. Mean image-position and final-input
-features are screened separately; each patient contributes one observation.
-Selection is exploratory, not a significance claim over 16,384 features.
-
-Confirmation inference/browsing is deliberately unavailable. The shortlist
-freezes discovery associations, **not** a future intervention/spatial protocol.
-No feature suppression, image masking, spatial performance evaluation, or
-mitigation is performed by these commands. Decoder-position overlays are not
-anatomical localization or causal attribution.
-
-Methods adapted from the [Line of Sight aggregation scripts](https://github.com/multimodal-interpretability/multimodal-saes/tree/8a466949994700be3eb67e3364375083d7697562/probing_approximation)
-and [official CheXlocalize mask conversion](https://github.com/rajpurkarlab/cheXlocalize/blob/2a79492e9ecdf1c3cad74d968134cadc16be4a70/annotation_to_segmentation.py).
-
-### Layer-14 feature attribution and interventions
-
-The repaired E-007 workflow uses fresh eager-text / SDPA-vision encodings for
-all 142 discovery images (140 patients), not the old SDPA intervention inputs:
-
-```bash
-uv run python -m medgemma_grounding.medgemma_discovery --stage run
-```
-
-Requires the saved `discovery_v1` cohort and successful
-`interventions_v2_preflight` verification below; missing/drifted inputs are refused.
-This automatically runs the two-case numerical smoke, full-discovery half/full
-removal calibration, then selection and matched-comparison ablations **only for
-qualifying position groups**. Existing calibration thresholds are unchanged.
-No qualifying groups is a valid stopping result, not permission to relax gates.
-Outputs go to `results/gemma_scope/interventions_v3_discovery/`: a new protocol,
-fresh CPU shards, calibration effects, attribution rankings, gated candidates,
-intervention effects and a stage-by-stage report. Previous outputs are preserved.
-`--stage report` regenerates offline; explicit `smoke`, `calibrate`, `select` and
-`ablate` stages support inspection/resume (`--limit N` on calibrate/ablate counts
-new cases). Protocol drift requires a new output directory.
-
-In the feature viewer, keep the saved feature directory on `discovery_v1` for
-image metadata and set the optional intervention directory to
-`results/gemma_scope/interventions_v3_discovery`. That section displays **fresh**
-activity, signed attribution, measured removals and repaired-baseline outcomes.
-AUC/Spearman are supporting associations; effects remain discovery-selected,
-not confirmed medical meanings, localization or unseen-patient improvements.
-Confirmation/test remain reserved. Historical commands below retain their
-original scope; they are not the repaired full-discovery entry point.
-
-The E-005 MPS run stopped at gradient-forward identity. Its bounded E-006
-diagnosis uses **only its two existing preflight cases**:
-
-```bash
-uv run python -m medgemma_grounding.medgemma_preflight
-```
-
-This compares inference, no-grad, grad-enabled-without-leaf and gradient capture.
-If operator traces confirm the attention-path hypothesis, it tests explicit
-eager text attention with frozen SDPA vision attention across every mode/edit.
-It keeps BF16 and the original tolerances and measures discovery-output and
-feature-cache compatibility separately. Results go to
-`results/gemma_scope/interventions_v2_preflight/`; `--report-only` regenerates
-the report offline. E-005's `interventions_v1` is preserved. This command stops
-after two cases and cannot launch pilot/cohort work. A full rerun needs a
-separately approved protocol after reviewing these measurements.
-
-The E-005 workflow tests first-order feature-removal estimates against direct
-residual-preserving edits on the existing discovery images. Run stages in order:
-
-```bash
-uv run python -m medgemma_grounding.medgemma_interventions --stage pilot
-uv run python -m medgemma_grounding.medgemma_interventions --stage attribute
-uv run python -m medgemma_grounding.medgemma_interventions --stage select
-uv run python -m medgemma_grounding.medgemma_interventions --stage ablate
-uv run python -m medgemma_grounding.medgemma_interventions --stage report
-```
-
-`pilot` runs the fixed 20-patient calibration, starting with its TP/TN preflight.
-Continue only if a position group qualifies in `pilot_report.json`; otherwise
-run `report` and stop. Later stages enforce this prerequisite. `attribute` and
-`ablate` accept `--limit N` newly processed cases and resume saved work.
-Selection requires complete discovery attribution. `select` and `report`
-run offline. `--stage` is required; importing the module starts no experiment.
-
-Defaults: source `results/gemma_scope/discovery_v1`, output
-`results/gemma_scope/interventions_v1`; override with `--source-dir` and
-`--output-dir`. Outputs include the fixed protocol, per-case CPU shards,
-`pilot_report.json`, `attribution_rankings.csv`, `candidates.json`,
-`intervention_effects.csv`, `intervention_report.json` and compact summaries.
-Changed protocols/settings require a new output directory. Completed treatments
-are saved individually; full ablations may take hours. The runtime stays
-MPS/BF16 with a CPU/FP32 SAE; errors stop execution without device substitution.
-
-In the feature viewer, set **Optional intervention results directory** to the
-output path. It displays calibration, signed attribution, direct removal
-effects and partial-run diagnostics. Estimates and matched comparisons remain
-discovery-selected; their uncertainty intervals are descriptive. This study
-does not establish a circuit, anatomical localization or unseen-patient benefit.
-Confirmation and test data remain reserved.
-
-### Targeted discovery with executed-size controls
-
-From the completed repaired-backend E-007 artifacts:
-
-```bash
-uv run python -m medgemma_grounding.medgemma_targeted --stage run
-# Regenerate saved-only reports without loading a model:
-uv run python -m medgemma_grounding.medgemma_targeted --stage report
-uv run streamlit run src/medgemma_grounding/feature_viewer.py
-```
-
-`run` freezes nominations and a three-direction control bank, verifies a two-case
-numerical smoke check, then continues through all 142 discovery images. It reuses
-only identical prior interventions and may take hours. Results go to
-`results/gemma_scope/targeted_discovery_v1/`; previous experiments are unchanged.
-Set **Optional intervention results directory** to that path in the viewer.
-The **E-007 calibration audit** and **Candidate evidence and visual hypotheses**
-tabs separate association, direct influence, errors and BF16-size-matched controls.
-See `report.md`, `report.json` and `methods.md` for measurements and limitations.
-Stages are resumable with fixed provenance; failures stop dependent model work.
-Discovery-selected results do not establish anatomical meaning, generalization
-or a correction policy. Confirmation and test patients remain reserved.
-
-### Decoder-depth image-to-answer knockout
-
-```bash
-uv run python -m medgemma_grounding.medgemma_attention --stage benchmark
-uv run python -m medgemma_grounding.medgemma_attention --stage run
-uv run python -m medgemma_grounding.medgemma_attention --stage report
-```
-
-The fixed study blocks image-key reads by the final input query (A) or all
-post-image non-image queries (B), across eight overlapping windows and full depth.
-It uses all 142 discovery images; gray-image diagnostics are not text-only runs
-or clinically negative images. Results: `results/attention_depth_v1/`.
-Set the viewer's **Optional intervention results directory** to that path for
-route profiles, patient heatmaps, cases, gray diagnostics and numerical checks.
-The benchmark gates full execution; different hardware/backend requires a new
-output directory and baselines. `--data-root` relocates original discovery images.
-Reports regenerate without model loading. Sensitivity is not a circuit,
-anatomical localization or evidence of effusion-specific processing. Confirmation
-and test patients remain reserved.
-
-### Existing 20-case cache
-
-Run both commands from the repository root. Extraction saves
-`results/gemma_scope/layer14_features/manifest.json` and `activations.pt`:
-model/processor/SAE revisions, original image paths and hashes, expert labels,
-raw greedy MedGemma answers (up to 32 tokens), token identities, and lossless
-sparse features for every input token. Use `--overwrite` to replace this cache.
-The viewer uses the original images at the recorded project location. Browsing
-requires neither model weights nor a Hugging Face token and performs no inference.
-
-Choose a feature ID to compare all 20 cases, inspect strongly or weakly
-activating examples, and view image-position grids, text highlights and raw
-token values. Cases rank by maximum image-token activation by default; text
-ranking is also available. The selected feature shares one color scale across
-all cases, excluding special tokens. Labels do not determine ranking.
-
-The optional overlay follows the verified single-image Gemma 3 path: direct
-resize to 896×896, 64×64 vision patches, 4×4 pooling, then a row-major 16×16
-image-token grid. Unsupported layouts disable overlays. These are contextual
-decoder-position activations, **not pathology-localization or causal-attribution
-maps**. Only input/prefill activations are captured; the displayed generated
-answer is context. The 20 cases develop the workflow, not confirm medical
-feature meanings; broader discovery and separate confirmation patients come later.
-
-For the discovery-only individual-layer routing study and error/score controls:
-
-These commands require the completed local E-009 artifacts and the reviewed
-E-010 protocol/methods under the output directory; results are Git-ignored.
-
-```bash
-uv run python -m medgemma_grounding.medgemma_routing --stage existing
-uv run python -m medgemma_grounding.medgemma_routing --stage run
-uv run python -m medgemma_grounding.medgemma_routing --stage report
-uv run python -m medgemma_grounding.medgemma_routing --stage verify
-```
-
-Outputs: `results/attention_errors_v3/`. Select this directory in the viewer's
-optional intervention-results field for layer contrasts, score controls and
-threshold tradeoffs. `run` benchmarks and verifies numerical controls first;
-completed resume/report/verify do not load model weights. These exploratory
-discovery comparisons do not establish a disease circuit or correction policy.
-
-The gallery, ranking and overlay code adapts Imageomics'
-[`saev-demo` feature viewer](https://github.com/Imageomics/saev-demo/blob/5fa496c9f8b63f503b1c8d9b0b9ef25dcd81b09e/demo/feature_vis.py),
-replacing its DINOv2/SAE inference path with saved MedGemma activations.
-Source attribution and the upstream MIT notice are retained in the viewer.
+The viewer retains the attribution and MIT notice for Imageomics'
+[saev-demo](https://github.com/Imageomics/saev-demo/blob/5fa496c9f8b63f503b1c8d9b0b9ef25dcd81b09e/demo/feature_vis.py).
+Research protocols and findings are recorded in the local, ignored `docs/` and
+saved result directories.
